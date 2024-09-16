@@ -1,93 +1,295 @@
-# LINFO2241-PROJECT-2024-2025-STUDENT
+# LINFO2241: Project setup
 
+Welcome to this installation guide ! We'll guide you through the setup of LINFO2241's project :)
 
+## SSH Setup (Mandatory for Mac users, not necessary if you have a bare-metal Linux install)
 
-## Getting started
+***If you are using a MacOS computer you won't be able to do the project at all***, you must setup your SSH access to UCLouvain network to work on this project. To do so, you have two options:
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+### The automated way
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+Do this INGInious exercice: https://inginious.info.ucl.ac.be/course/welcome-ingi then add the private key to your .ssh directory (explained below).
 
-## Add your files
+### The manual way (Nice skill to have)
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+You must go **physically** to the Intel room in Réaumur building and connect to a computer. Once connected, simply follow the following steps:
 
+#### On your computer
+
+Generate a key that will be used to communicate safely with UCLouvain Network (I'm sure you don't want your wonderful project to leak to other students ;)). You just have to open a terminal and type the following:
+
+```bash
+ssh-keygen -t ed25519 -C "John Doe's nice ssh key !"
+eval "$(ssh-agent -s)"
+#Linux
+ssh-add ~/.ssh/id_ed25519
+#MacOS
+ssh-add --apple-use-keychain ~/.ssh/id_ed25519
 ```
-cd existing_repo
-git remote add origin https://forge.uclouvain.be/LINFO2241/linfo2241-project-2024-2025-student.git
-git branch -M main
-git push -uf origin main
+Simply follow the steps on the screen and set a password if you want additional security (You'll have to enter it each time you want to connect to UCLouvain, so keep it in mind).
+
+Now, you can simply show your key with:
+
+```bash
+cat ~/.ssh/id_ed25519.pub
+# It should output something like "ssh-ed25519 AAAAC3N..."
 ```
 
-## Integrate with your tools
+Keep the result of this command in mind, you'll need it in the next steps.
 
-- [ ] [Set up project integrations](https://forge.uclouvain.be/LINFO2241/linfo2241-project-2024-2025-student/-/settings/integrations)
+#### On the Intel computer
 
-## Collaborate with your team
+Once logged in a computer in the Intel Room, open a terminal and run:
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+```bash
+vi ~/.ssh/authorized_keys 
+```
 
-## Test and Deploy
+This command will open a in-terminal text editor. Don't panic, this will be over soon.
 
-Use the built-in continuous integration in GitLab.
+Type `i` to enter in insertion mode, and type the output of the command from the previous step (The weird thing starting with `ssh-ed25519 AAA...`). The funny part is that the output of the command was on your MacOS laptop and now you have to retype it on the Intel computer. You can be brave and retype it yourself or send it through any channel (Usually, by mail) to then simply copy/paste it. Once done, press `Esc` and type `:wq` to save and leave the editor.
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+Alternatively you can use nano to edit the file, but learning a few vi commands is handy.
 
-***
+```bash
+nano ~/.ssh/authorized_keys 
+```
 
-# Editing this README
+### Back on your computer
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+Now, you should be able to connect to the SSH gateway by typing this in a terminal:
 
-## Suggestions for a good README
+```bash
+ssh YourID@studssh.info.ucl.ac.be -o ForwardAgent=yes -i ~/.ssh/id_ed25519
+```
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+Where you replace `YourID` by your UCLouvain identifier. "-o ForwardAgent=yes" is used to forward your ssh agent (think your ssh credentials), it is useful when you use the studssh as a gateway to connect to the the actual machines. It avoids the need to transfer you ssh key directly to studssh. This is good practice. You can also copy paste you ***private*** ssh key to the .ssh folder of you studssh gateway.
 
-## Name
-Choose a self-explaining name for your project.
+Then you can connect to the Intel room servers using
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+```bash
+ssh didacXX
+```
+where XX is the id of the machine you want to connect to (didac01 for instance). You can find a list of the servers available [here](https://wiki.student.info.ucl.ac.be/Mat%C3%A9riel/SalleIntel).  
+If the connection doesn't work, please reach out to an assistant, we'll fix that.
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+#### Using a ssh config (recommended)
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+You are highly encouraged to use an ssh config to simplify the connection to the remote computers.
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+~/.ssh/config:
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+```bash
+# Replace $YOURUSERNAME by your UCLouvain username
+Host studssh
+  HostName studssh.info.ucl.ac.be
+  User $YOURUSERNAME
+  ForwardX11 yes
+  ForwardX11Trusted yes
+  ForwardAgent yes
+  IdentityFile ~/.ssh/$YOURKEY
+  ServerAliveInterval 60
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+Host didac*
+  Hostname %h
+  User $YOURUSERNAME
+  ForwardX11 yes
+  ForwardX11Trusted yes
+  ForwardAgent yes
+  ServerAliveInterval 60
+  ProxyCommand ssh studssh -W %h:%p
+```
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+From your computer, you can use
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+```bash
+ssh didac01
+```
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+***If you use VSCode as your text editor, the SSH extension is very convenient to code remotely. Use it!***
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+## Prerequisites
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+For this project, you'll need **Linux**. If your machine is running on Windows or MacOS, please do not panic.
 
-## License
-For open source projects, say how it is licensed.
+- **For Windows users**: Please setup WSL through the tutorial [here](https://learn.microsoft.com/en-us/windows/wsl/install). The default Ubuntu distribution will do just fine.
+- **For Mac users**: You'll need to connect to UCL servers through SSH. Just follow the steps in the previous section.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+You'll need basic compilation tools to work on this project. If you're working on UCLouvain's servers (which you should if your computer is running MacOS or Windows), they are already installed. For the others, the procedure depends on which distribution you're running. It should go be one of the following :  
+
+### Ubuntu/Debian
+
+```bash
+sudo apt update
+sudo apt install build-essential libpcre3-dev zlib1g-dev libssl-dev
+```
+
+### Fedora
+
+```bash
+sudo dnf install make automake gcc gcc-c++ kernel-devel pcre-devel zlib-devel libssl47
+```
+
+### ArchLinux/Manjaro (not officially supported)
+
+```bash
+sudo pacman -S base-devel pcre2 zlib openssl
+```
+
+## Download repositories and build
+
+If you haven't cloned the repository yet, open a terminal, then type:
+
+```bash
+git clone git@forge.uclouvain.be:LINFO2241/linfo2241-project-2024-2025-student.git LINFO2241-2024-2025
+```
+
+Then, you can move to the project directory:
+
+```bash
+cd LINFO2241-2024-2025
+export PROJECT_PATH=$PWD
+```
+
+## Server setup
+
+
+```bash
+# Downloading NGINX
+wget https://nginx.org/download/nginx-1.23.0.tar.gz
+tar -xzf nginx-1.23.0.tar.gz
+rm nginx-1.23.0.tar.gz
+mv nginx-1.23.0/ nginx/
+# Download required extension
+git clone https://github.com/Taymindis/nginx-link-function.git
+# You should include the nginx-link-function header into the c include path
+export C_INCLUDE_PATH=$PROJECT_PATH/nginx-link-function/src
+# Compile nginx
+cd nginx
+# NGINX will be installed here, we will have two versions, one for debug and one for performance
+mkdir install_release
+mkdir install_debug
+# Release version
+# WARNING: Read below !
+# When configuring a project, you can often specify a prefix. Here it is given by the long
+# argument --prefix. This argument specifies where the project will be installed on your system.
+# By default it will install at the root of your system and you would thus need root (sudo) access.
+# Here we specify a path in our project directory so we don't need root access.
+./configure --add-module=$PROJECT_PATH/nginx-link-function --prefix=$PROJECT_PATH/nginx/install_release
+make
+make install
+# Debug version, this specifies that the project should be compiled with debugging symbols.
+# For this project, this is specificied using the long option --with-debug.
+./configure --add-module=$PROJECT_PATH/nginx-link-function --prefix=$PROJECT_PATH/nginx/install_debug --with-debug
+make
+make install
+```
+💡: **Note** : To debug using the debugging version, you should learn the basics of using *gdb* and/or *valgrind*. You can find more information on the [official website](https://www.gnu.org/software/gdb/) and [here](https://valgrind.org/). Learning these tools is not mandatory, but it will make your life much easier.
+
+⚠️ **Warning** : If you close your terminal, you might need to reuse these two commands or your code may not compile anymore :
+
+```bash
+# From the root directory of the project
+export PROJECT_PATH=$PWD
+export C_INCLUDE_PATH=$PROJECT_PATH/nginx-link-function/src
+```
+
+TIPS: you can specify compiler flags with `--with-cc-opt`
+
+```bash
+./configure --add-module=$PROJECT_PATH/nginx-link-function --prefix=$PROJECT_PATH/nginx/install --with-cc-opt='-O0 -g'
+```
+
+Congratulations, you're just a few steps away from the end of this tutorial! There are just a few changes to apply.
+
+First, you must create log files for the application:  
+
+```bash
+touch $PROJECT_PATH/nginx/install_release/logs/error.log
+touch $PROJECT_PATH/nginx/install_debug/logs/error.log
+```
+
+Now, you're ready for the final step of this guide: building your project!
+
+```bash
+cd $PROJECT_PATH/project/server_implementation
+# Creating the build directory
+mkdir build
+# Compiling the project
+make -B build
+```
+
+To run the server in release mode you can simply do :
+
+```bash
+make run_release
+```
+
+If you want more debugging information you can use the run_debug target (should be the default target when developing) :
+
+```bash
+make run_debug
+```
+
+We also provide you with another target that runs the server, runs [GDB](https://sourceware.org/gdb/), attaches to the worker process and continues the execution. This is ***very*** useful for debugging.
+
+```bash
+make run_gdb
+```
+
+Finally, we provide a Valgrind target that can be useful to detect wrong memory access:
+
+```bash
+make run_valgrind
+```
+
+⚠️ **Warning** : if you use `make run` instead of `make run_debug`, NGINX won't show errors even when they are present. When developing prefer the `run_debug` and `run_gdb` targets.
+
+To debug your code, you should encapsulate your code in functions and put them in the `utils/utils.c` file. A Makefile and a main function are available in the `tests/` folder.
+
+🚨 **Troubleshooting**: 
+- If you are still having troubles with the setup, we provide you a script at the root of the project that you can use to fully build the project. Even though this script should work, it is recommended to follow the steps above to understand what is happening. To use the script, simply run the following command in your terminal :
+
+```bash
+# Compiling the whole project
+bash init_project.sh
+```
+- If you are seeing weird bugs or crashes, you should check that you **Don't use the `malloc` or `free` functions** from the C standard library. See the project statement for more information.
+
+## Testing the provided server
+
+The server we provide you with is a simple HTTP server that responds with "Hello, World!".
+
+There are multiple ways to generate HTTP requests. Later in the project, you will use [WRK](https://github.com/wg/wrk) to automate traffic generation. For now, we will use [WGET](https://www.gnu.org/software/wget/) to test your server. You can use the following command :
+
+```bash
+wget localhost:8888 -q -O -
+```
+
+You should see **Hello, World!** appear in your terminal. Dont forget to first run the server with the `make run_debug` command in another terminal.
+
+Feel free to use whatever means you like for sending requests, it is not part of the evaluation (for now :D).
+
+Other solutions can be:
+
+- **[curl](https://gist.github.com/subfuzion/08c5d85437d5d4f00e58)**: another command-based client similar to wget
+- **[Insomnia](https://insomnia.rest/)**: An application with a graphical user interface
+- **[Postman](https://www.postman.com/)**: Like Insomnia, but it's proprietary software
+
+## Testing your server
+
+For the first evaluation, you will have to modify the provided server and implement the algorithm described statement of the first project (instructions are on Moodle!).
+
+To construct a correct request, we provide you with a [script](student_helper/send_request.sh).
+
+You can use it like this:
+
+```bash
+bash ./student_helper/send_request.sh
+```
+
+The expected output is:
+
+```bash
+5805837,35882937
+```
