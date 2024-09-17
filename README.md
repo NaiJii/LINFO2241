@@ -63,7 +63,11 @@ Now, you should be able to connect to the SSH gateway by typing this in a termin
 ssh YourID@studssh.info.ucl.ac.be -o ForwardAgent=yes -i ~/.ssh/id_ed25519
 ```
 
-Where you replace `YourID` by your UCLouvain identifier. "-o ForwardAgent=yes" is used to forward your ssh agent (think your ssh credentials), it is useful when you use the studssh as a gateway to connect to the the actual machines. It avoids the need to transfer you ssh key directly to studssh. This is good practice. You can also copy paste you ***private*** ssh key to the .ssh folder of you studssh gateway.
+Where you replace `YourID` by your UCLouvain identifier. "-o ForwardAgent=yes" is used to forward your ssh agent (think your ssh credentials), it is useful when you use the studssh as a gateway to connect to the the actual machines. It avoids the need to transfer you ssh key directly to studssh. This is good practice. You can also copy paste your ***private*** ssh key to the .ssh folder of the studssh gateway with the following command :
+
+```bash
+scp ~/.ssh/$YOUR_PRIVATE_KEY $YOURUSERNAME@studssh.info.ucl.ac.be:.ssh/
+```
 
 Then you can connect to the Intel room servers using
 
