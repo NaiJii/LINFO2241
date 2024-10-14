@@ -33,21 +33,19 @@ int is_service_on = 0;
 
 static char *body_processing(ngx_link_func_ctx_t *ctx, char *body, size_t body_len,
                              size_t *resp_len) {
-    /**
-     * TODO: Replace the example code below with your own code.
-     */
 
-    // Simply example that always responds with "Hello, World!"
-    // You can define your functions in utils.h and utils.c, and use them here.
-    (void)body;
-    (void)body_len;
-    int bar = foo();
-    printf("bar: %d\n", bar);
-    char hello_world[] = "Hello, World!\n";
-    char *res = ngx_link_func_palloc(ctx, sizeof(hello_world) + 1);
-    strcpy(res, hello_world);
-    *resp_len = strlen(res);
-    return (char *)res;
+    char* res_str = ngx_link_func_palloc(ctx, 65536);
+    uint32_t* res_uint = ngx_link_func_palloc(ctx, 1024);
+    uint32_t* intermediary_matrix = ngx_link_func_palloc(ctx, 1024);
+
+    //printf("Request: %s\n", body);
+
+    uint32_t resp_len_uint = 0;
+    complete_algorithm(body, body_len, res_str, res_uint, intermediary_matrix, &resp_len_uint);
+    *resp_len = resp_len_uint;
+    //!!!WARNING!!! : In your implementation of the actual server the arrays above should be dynamically allocated using ngx_link_func_palloc/ngx_link_func_pcalloc
+    //printf("Response: %s\n", res_str);
+    return res_str;
 }
 
 void main_function(ngx_link_func_ctx_t *ctx) {

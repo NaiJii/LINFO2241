@@ -1,10 +1,43 @@
+#ifndef UTILS_H
+#define UTILS_H
+
 #include "utils.h"
 
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+int foo(void);
+// Functions you are asked to implement
+void parse_request(struct parsed_request *parsed, char *request, size_t request_len);
+void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uint32_t K);
+void test_patterns(uint32_t *matrix, uint32_t matrix_size, uint32_t *patterns,
+                      uint32_t pattern_size, uint32_t nb_patterns, uint32_t *res);
+void res_to_string(char *str, uint32_t *res, uint32_t res_size);
+char *complete_algorithm(char *raw_request, uint32_t raw_request_len, char *res_str, uint32_t *res_uint, uint32_t *intermediary_matrix, uint32_t *resp_len);
+size_t extract_number(char *str, char delim, char* end, uint32_t* number);
 
 // Dummy function
 int foo(void) { return 42; }
+
+size_t extract_number(char *str, char delim, char* end, uint32_t* number) {
+    char* it = str;
+    while (*it != delim) {
+        it++;
+        if (it == end) {
+            return -1;
+        }
+    }
+
+    size_t number_len = it - str;
+    char number_str[number_len + 1];
+    strncpy(number_str, str, number_len);
+    number_str[number_len] = '\0';
+
+    *number = atoi(number_str);
+    return number_len;
+}
 
 /**
  * @brief Parses a raw request into a nice struct
@@ -17,15 +50,66 @@ int foo(void) { return 42; }
  * @note `mat1`, `mat2` and `patterns` should point to the body of `request` at the location of each element.
 */
 void parse_request(struct parsed_request *parsed, char *request, size_t request_len) {
-    (void)parsed;
-    (void)request;
-    (void)request_len;
-    printf("CHANGE ME\n");
+    //      MatrixSideSize,NbPatterns,SizeOfEachPattern,Text..NetworkLayer..Pattern1..PatternN
+    // e.g. 2,2,1,ThisIsAnExample!SomeNetworkLayerExamJump
+
+    PRINTF("=== Parsing request ===\n"text_len);
+    PRINTF("request: %s\n", request);
+    request += extract_number(request, ',', request + request_len, &parsed->matrices_size) + 1;
+    PRINTF("matrices_size: %d\n", parsed->matrices_size);
+    PRINTF("request delta: %lu\n", request - r);
+    request += extract_number(request, ',', request + request_len, &parsed->nb_patterns) + 1;
+    PRINTF("nb_patterns: %d\n", parsed->nb_patterns);
+    PRINTF("request delta: %lu\n", request - r);
+    request += extract_number(request, ',', request + request_len, &parsed->patterns_size) + 1;
+    PRINTF("patterns_size: %d\n", parsed->patterns_size);
+    PRINTF("request delta: %lu\n", request - r);
+
+    // The text and network layer are of the same size.
+    const size_t text_len = parsed->matrices_size * parsed->matrices_size * sizeof(uint32_t);
+    PRINTF("text_len: %lu\n", text_len);
+    // const size_t pattern_len = parsed->patterns_size * sizeof(uint32_t);
+
+    size_t left_len = request_len - (request - request);
+    if (left_len < text_len * 2 + parsed->nb_patterns * parsed->patterns_size)
+        return;
+    
+    char temp[text_len];
+    
+    parsed->mat1 = (uint32_t*)request;
+    strncpy(temp, request, text_len);
+    PRINTF("mat1: %s\n", temp);
+    for (uint32_t i = 0; i < text_len / 4; i++) {
+        //PRINTF("%u ", parsed->mat1[i]);
+    }
+    request += text_len;
+    PRINTF("request delta: %lu\n", request - r);
+    
+    parsed->mat2 = (uint32_t*)request;
+    strncpy(temp, request, text_len);
+    PRINTF("mat2: %s\n", temp);
+    request += text_len;
+    PRINTF("request delta: %lu\n", request - r);
+    
+    parsed->patterns = (uint32_t*)request;
+    for (uint32_t i = 0; i < parsed->nb_patterns; i++) {
+        strncpy(temp, request + i * parsed->patterns_size, parsed->patterns_size);
+        //PRINTF("patterns: %s\n", temp);
+    }
+
+    //request += parsed->nb_patterns * parsed->patterns_size;
+    //printf("request delta: %lu\n", request - r);
+
+    // print all addresses in memory
+    PRINTF("mat1: %p\n", (void*)parsed->mat1);
+    PRINTF("mat2: %p\n", (void*)parsed->mat2);
+    PRINTF("patterns: %p\n", (void*)parsed->patterns);
+    PRINTF("=== End of parsing ===\n");
 }
 
 /**
  * @brief Computes the product of two matrixes
- *
+ *>
  * @param matrix1: a K x K matrix
  * @param matrix2: a K x K matrix
  * @param result: a K x K matrix that should contain the product of matrix1
@@ -35,12 +119,24 @@ void parse_request(struct parsed_request *parsed, char *request, size_t request_
  * @note `result` should be modified to the result of the multiplication of the matrices
 */
 void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uint32_t K) {
-    (void)matrix1;
-    (void)matrix2;
-    (void)result;
-    (void)K;
-    return;
+    //printf("mat1: %p\n", (void*)matrix1);
+    //printf("mat2: %p\n", (void*)matrix2);
+    // i is the row index
+    // j is the column index
+    // k is the index of the element in the row/column
+    for (uint32_t i = 0; i < K; i++) {
+        for (uint32_t j = 0; j < K; j++) {
+            result[i * K + j] = 0;  
+            for (uint32_t k = 0; k < K; k++) {
+                result[i * K + j] += matrix1[i * K + k] * matrix2[k * K + j];
+            }
+        }
+    }
 }
+
+// uint32_t distance(uint32_t a, uint32_t b) {
+//     return (a - b) * (a - b);
+// }
 
 /**
  * @brief Computes a measure of similarity between the patterns and the matrix
@@ -57,13 +153,30 @@ void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uin
 */
 void test_patterns(uint32_t *matrix, uint32_t matrix_size, uint32_t *patterns,
                    uint32_t pattern_size, uint32_t nb_patterns, uint32_t *res) {
-    (void)matrix;
-    (void)matrix_size;
-    (void)patterns;
-    (void)pattern_size;
-    (void)nb_patterns;
-    (void)res;
-    printf("CHANGE ME\n");
+    const uint32_t m = matrix_size * matrix_size;
+    const uint32_t n = nb_patterns;
+    
+    if (res == NULL) {
+        return;
+    }
+
+    for (uint32_t i = 0; i < n; i++) {
+        res[i] = UINT32_MAX;
+    }
+
+    for (uint32_t i = 0; i < m - pattern_size + 1; i++) {
+        for (uint32_t j = 0; j < n; j++) {
+            uint32_t dist = 0;
+            uint32_t new_j = j * pattern_size;
+            for (uint32_t k = 0; k < pattern_size; k++) {
+                dist += (matrix[i + k] - patterns[new_j + k]) * (matrix[i + k] - patterns[new_j + k]);
+            }
+
+            if (dist < res[j]) {
+                res[j] = dist;
+            }
+        }
+    }
 }
 
 /**
@@ -74,9 +187,46 @@ void test_patterns(uint32_t *matrix, uint32_t matrix_size, uint32_t *patterns,
  * @param res_size: The length of the the array `res`
 */
 void res_to_string(char *str, uint32_t *res, uint32_t res_size) { 
-    (void)str;
-    (void)res;
-    (void)res_size;
-    printf("CHANGE ME\n"); 
+    for (uint32_t i = 0; i < res_size; i++) {
+        sprintf(str, "%d", res[i]);
+        str += strlen(str);
+        if (i != res_size - 1) {
+            sprintf(str, ",");
+            str += strlen(str);
+        }
+    }
 }
 
+/**
+ * @brief Applies the complete algorithm
+ *
+ * @param raw_request The raw request as it is received by the server
+ * @param raw_request_len The size of the raw request
+ * @param res_str The output of the function => First return value
+ * @param res_uint Intermeditary storage you can use for the computation of the distance for the pattern before the string transformation
+ * @param intermediary_matrix Param you can use to store the result of the product between the two matrices
+ * @param resp_len the length of the resres_charponse => Second return value
+ *
+ * @note you can assume that `res_str`, `res_uint` and `intermediary_matrix` are big enough to store what you need
+ * @note res_str has a size of 2**16, res_uint can old 2*10 uint32_t and intermediary_matrix can hold 2*10 uint32_t, this should be more than enough
+*/
+char *complete_algorithm(char *raw_request, uint32_t raw_request_len, char *res_str, uint32_t *res_uint, uint32_t *intermediary_matrix, uint32_t *resp_len) {
+    if (!raw_request || raw_request_len == 0) {
+        return NULL;
+    }
+    
+    struct parsed_request parsed;
+    parse_request(&parsed, raw_request, raw_request_len);
+
+    multiply_matrix(parsed.mat1, parsed.mat2, intermediary_matrix, parsed.matrices_size);
+
+    test_patterns(intermediary_matrix, parsed.matrices_size, parsed.patterns,parsed.patterns_size, parsed.nb_patterns, res_uint);
+
+    res_to_string(res_str, res_uint, parsed.nb_patterns);
+
+    *resp_len = strlen(res_str);
+    //printf("resp_len: %d\n", *resp_len);
+
+    return res_str;
+}
+#endif 
