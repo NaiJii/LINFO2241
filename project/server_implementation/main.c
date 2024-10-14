@@ -34,17 +34,23 @@ int is_service_on = 0;
 static char *body_processing(ngx_link_func_ctx_t *ctx, char *body, size_t body_len,
                              size_t *resp_len) {
 
-    char* res_str = ngx_link_func_palloc(ctx, 65536);
-    uint32_t* res_uint = ngx_link_func_palloc(ctx, 1024);
-    uint32_t* intermediary_matrix = ngx_link_func_palloc(ctx, 1024);
+    struct parsed_request parsed;
 
-    //printf("Request: %s\n", body);
+    parse_request(&parsed, body, body_len);
 
-    uint32_t resp_len_uint = 0;
-    complete_algorithm(body, body_len, res_str, res_uint, intermediary_matrix, &resp_len_uint);
-    *resp_len = resp_len_uint;
-    //!!!WARNING!!! : In your implementation of the actual server the arrays above should be dynamically allocated using ngx_link_func_palloc/ngx_link_func_pcalloc
-    //printf("Response: %s\n", res_str);
+    char* res_str = ngx_link_func_palloc(ctx, (10 * parsed.nb_patterns + 1) * sizeof(char));
+    uint32_t* res_uint = ngx_link_func_palloc(ctx, parsed.nb_patterns * sizeof(uint32_t));
+    uint32_t* intermediary_matrix = ngx_link_func_palloc(ctx, parsed.matrices_size * parsed.matrices_size * sizeof(uint32_t));
+
+    multiply_matrix(parsed.mat1, parsed.mat2, intermediary_matrix, parsed.matrices_size);
+
+    test_patterns(intermediary_matrix, parsed.matrices_size, parsed.patterns,parsed.patterns_size, parsed.nb_patterns, res_uint);
+
+    res_to_string(res_str, res_uint, parsed.nb_patterns);
+
+    *resp_len = strlen(res_str);
+    //printf("resp_len: %d\n", *resp_len);
+
     return res_str;
 }
 
