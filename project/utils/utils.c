@@ -8,18 +8,13 @@
 #include <string.h>
 #include <stdlib.h>
 
-int foo(void);
-// Functions you are asked to implement
+
 void parse_request(struct parsed_request *parsed, char *request, size_t request_len);
 void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uint32_t K);
-void test_patterns(uint32_t *matrix, uint32_t matrix_size, uint32_t *patterns,
-                      uint32_t pattern_size, uint32_t nb_patterns, uint32_t *res);
+void test_patterns(uint32_t *matrix, uint32_t matrix_size, uint32_t *patterns, uint32_t pattern_size, uint32_t nb_patterns, uint32_t *res);
 void res_to_string(char *str, uint32_t *res, uint32_t res_size);
 char *complete_algorithm(char *raw_request, uint32_t raw_request_len, char *res_str, uint32_t *res_uint, uint32_t *intermediary_matrix, uint32_t *resp_len);
 size_t extract_number(char *str, char delim, char* end, uint32_t* number);
-
-// Dummy function
-int foo(void) { return 42; }
 
 size_t extract_number(char *str, char delim, char* end, uint32_t* number) {
     char* it = str;

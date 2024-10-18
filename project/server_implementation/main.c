@@ -49,7 +49,6 @@ static char *body_processing(ngx_link_func_ctx_t *ctx, char *body, size_t body_l
     res_to_string(res_str, res_uint, parsed.nb_patterns);
 
     *resp_len = strlen(res_str);
-    //printf("resp_len: %d\n", *resp_len);
 
     return res_str;
 }

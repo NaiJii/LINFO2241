@@ -12,7 +12,7 @@ NB_PATTERNS={1,2,4,8}
 TIME=2
 
 %script@server
-# Start the server
+# Start the serverx``
 env matsize=64 patterns_size=64 nb_patterns=2 ./wrk2/wrk http://localhost:8888/ -R1024 -s project/wrk_scripts/simple_scenario.lua
 
 %script@client 
