@@ -1,3 +1,4 @@
 #!/bin/bash
 
-# TODO: Make plots
+cd ..
+python3 run_perf.py
