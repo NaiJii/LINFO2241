@@ -3,6 +3,21 @@ import matplotlib.pyplot as plt
 
 results = pd.read_csv("./performance_data.csv")
 
+def plot(type, x_label, y_label, title, n, x_data, y_data):
+    if type == 'bar':
+        plt.bar(x_data, y_data)
+    elif type == 'line':
+        plt.plot(x_data, y_data)
+    else:
+        plt.boxplot(y_data)
+        #plt.xticks() solve this later
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.title(title)
+    plt.savefig('results/plot' + str(n) +'.png')
+
+    plt.clf()
+
 plt.boxplot(results['transfer_per_sec'])
 plt.xlabel('Matrix size')
 plt.xticks([1], [8]) #change this later for the real data
@@ -12,21 +27,9 @@ plt.savefig('results/plot1.png')
 
 plt.clf()
 
-plt.bar(results['patterns_size'], results['transfer_per_sec'])
-plt.xlabel('Pattern size')
-plt.ylabel('Transfer per second')
-plt.title('Something important')
-plt.savefig('results/plot2.png')
+plot('bar', 'Pattern size', 'Transfer per second', 'Something important', 2, results['patterns_size'], results['transfer_per_sec'])
 
-plt.clf()
-
-plt.bar(results['nb_patterns'], results['transfer_per_sec'])
-plt.xlabel('Number of patterns')
-plt.ylabel('Transfer per second')
-plt.title('Something important')
-plt.savefig('results/plot3.png')
-
-plt.clf()
+plot('bar', 'Number of patterns', 'Transfer per second', 'Something important', 3, results['nb_patterns'], results['transfer_per_sec'])
 
 plt.boxplot(results['transfer_per_sec'])
 plt.xlabel('Number of threads')
@@ -37,23 +40,7 @@ plt.savefig('results/plot4.png')
 
 plt.clf()
 
-plt.plot(results['transfer_per_sec'])
-plt.xlabel('Number of connections')
-plt.xticks([1], [8]) #change this later for the real data
-plt.ylabel('Transfer per second')
-plt.title('Something important')
-plt.savefig('results/plot5.png')
+plot('bar', 'Number of connections', 'Transfer per second', 'Something important', 5, results['connections'], results['transfer_per_sec'])
 
-plt.clf()
-
-'''
-matsize,patterns_size,nb_patterns,duration,threads,connections,throughput,latency_avg,latency_stdev,latency_max,requests,data_read,requests_per_sec,transfer_per_sec
-8,2,1,10,2,8,1000,0,0,0,9996,1562378.24,999.65,155944.96
-8,2,1,10,2,8,2000,0,0,0,19988,3114270.72,1998.51,311756.8
-8,2,2,10,2,8,1000,0,0,0,9996,1667235.84,999.56,166922.24
-8,2,2,10,2,8,2000,0,0,0,19989,3334471.68,1998.59,333752.32
-8,4,1,10,2,8,1000,0,0,0,9996,1551892.48,999.54,154920.96
-8,4,2,10,2,8,1000,0,0,0,9996,1646264.32,999.61,164935.68
-8,4,1,10,2,8,2000,0,0,0,19988,3093299.2,1998.76,309800.96
-8,4,2,10,2,8,2000,0,0,0,19988,3303014.4,1998.66,329768.96
-'''
+#format of the csv file
+#matsize,patterns_size,nb_patterns,duration,threads,connections,throughput,latency_avg,latency_stdev,latency_max,requests,data_read,requests_per_sec,transfer_per_sec
