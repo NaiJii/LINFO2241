@@ -113,15 +113,14 @@ def performance_analysis(runs, max_workers):
     return all_results
 
 def main():
-    matsize = [8, 16, 32]
-    # matsize = [512, 1024, 2048]
-    pattern_size = [2, 4, 8, 16]
+    matsize = [8, 16, 32, 64, 128]
+    pattern_size = [8, 16, 32, 64, 128]
     # pattern_size = [512, 1024, 2048]
     
-    pattern_count = [1, 2, 4] 
-    benchmark_duration = [10, 15]
-    thread_count = [2, 4]
-    http_connections = [8, 16]
+    pattern_count = [1, 2, 4, 8, 16] 
+    benchmark_duration = [10, 20]
+    thread_count = [1, 2, 4]
+    http_connections = [10, 100, 1000]
     throughput = [1000, 2000]
     
     run_configs = []
