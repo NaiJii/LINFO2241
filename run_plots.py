@@ -1,7 +1,15 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-results = pd.read_csv("./performance_data.csv")
+results = pd.read_csv("performance_data.csv")
+# make a correlation graph
+results.corr().style.background_gradient(cmap='coolwarm')
+
+# output the correlation as a picture
+plt.matshow(results.corr())
+plt.savefig('results/correlation.png')
+
+# 
 
 def plot(type, x_label, y_label, title, n, x_data, y_data):
     if type == 'bar':
