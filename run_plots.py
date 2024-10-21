@@ -1,7 +1,19 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
+<<<<<<< Updated upstream
 results = pd.read_csv("./performance_data.csv")
+=======
+results = pd.read_csv("performance_data.csv")
+# make a correlation graph
+results.corr().style.background_gradient(cmap='coolwarm')
+
+# output the correlation as a picture
+plt.matshow(results.corr())
+plt.savefig('results/correlation.png')
+
+# 
+>>>>>>> Stashed changes
 
 plt.boxplot(results['transfer_per_sec'])
 plt.xlabel('Matrix size')
