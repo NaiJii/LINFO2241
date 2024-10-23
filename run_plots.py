@@ -2,7 +2,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
+
+
 results = pd.read_csv("performance_data.csv")
+
+# print how much data
+print("Result count = ", len(results))
 
 plt.matshow(results.corr())
 plt.xticks(range(len(results.columns)), results.columns, rotation='vertical')
@@ -121,3 +126,66 @@ plt.title("Average Latency by Connections")
 plt.xlabel("Number of Connections")
 plt.ylabel("Average Latency (ms)")
 plt.show()
+
+
+data_read_by_connection_count = results.groupby('connections')['data_read'].mean()
+data_read_by_connection_count.plot()
+plt.title("Data Read by Connection Count")
+plt.xlabel("Number of Connections")
+plt.ylabel("Data Read (bytes)")
+plt.show()
+
+
+data_read_by_matrix_size = results.groupby('matsize')['data_read'].mean()
+data_read_by_matrix_size.plot()
+plt.title("Data Read by Matrix Size")
+plt.xlabel("Matrix Size")
+plt.ylabel("Data Read (bytes)")
+plt.show()
+
+
+# show a graph showing the average latency by matrix size for different number of connections
+# i want the number of connections on the x axis and the average latency on the y axis
+# i want a single line for each matrix size
+ 
+# for matrix_size in results['matsize'].unique():
+#     data = results[results['matsize'] == matrix_size]
+#     plt.plot(data['connections'], data['latency_avg'], label=matrix_size)
+# plt.xlabel("Number of Connections")
+# plt.ylabel("Average Latency (ms)")
+# plt.title("Average Latency by Number of Connections")
+# plt.legend()
+
+# show a graph showing the average latency by matrix size for different number of threads
+# i want the number of threads on the x axis and the average latency on the y axis
+# i want a line for each matrix size
+
+# for matrix_size in results['matsize'].unique():
+#     data = results[results['matsize'] == matrix_size]
+#     plt.plot(data['threads'], data['latency_avg'], label=matrix_size)
+# plt.xlabel("Number of Threads")
+# plt.ylabel("Average Latency (ms)")
+# plt.title("Average Latency by Number of Threads")
+# plt.legend()
+# plt.show()
+
+
+
+
+### grafer tycker jag skulle vara intressant att se
+
+### keep in mind we probably don't want to get ALL data whenever drawing the graphs,
+### e.g. get data from specific case like 1000 connections, 1 thread to avoid clutter
+
+## 1. throughput versus number of threads 
+## we should see an increase in throughput as we increase the number of threads
+## barplot, x = number of threads, y = throughput
+
+## 2. average latency versus number of connections 
+## barplot, x = number of connections
+
+## show average latency for each throughput/threads
+## barplot 
+
+## 3. average latency versus matrix size/number of patterns/pattern size
+## barplot, x = matrix size, y = average latency
