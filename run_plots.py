@@ -2,8 +2,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-
-
 results = pd.read_csv("performance_data.csv")
 result_count = len(results)
 print(f"Total number of results: {result_count}")
@@ -76,7 +74,7 @@ avg_latency.plot(kind='bar')
 plt.title("Average Latency by Pattern Size")
 plt.xlabel("Pattern Size")
 plt.ylabel("Average Latency (ms)")
-plt.show()
+plt.savefig('results/latency_by_pattern_size.png')
 
 
 requests_per_sec = results.groupby('connections')['requests_per_sec'].mean()
@@ -84,13 +82,13 @@ requests_per_sec.plot(kind='bar')
 plt.title("Requests per Second by Connections")
 plt.xlabel("Number of Connections")
 plt.ylabel("Requests per Second")
-plt.show()
+plt.savefig('results/requests_per_sec_by_connections.png')
 
 plt.boxplot([results[results['nb_patterns'] == n]['latency_avg'] for n in results['nb_patterns'].unique()], labels=results['nb_patterns'].unique())
 plt.title("Latency Distribution by Number of Patterns")
 plt.xlabel("Number of Patterns")
 plt.ylabel("Latency (ms)")
-plt.show()
+plt.savefig('results/latency_by_nb_patterns.png')
 
 
 
@@ -100,7 +98,7 @@ avg_latency_by_matrix.plot(kind='bar')
 plt.title("Average Latency by Matrix Size")
 plt.xlabel("Matrix Size")
 plt.ylabel("Average Latency (ms)")
-plt.show()
+plt.savefig('results/latency_by_matrix_size.png')
 
 
 avg_latency_by_pattern = results.groupby('patterns_size')['latency_avg'].mean()
@@ -108,14 +106,14 @@ avg_latency_by_pattern.plot(kind='bar')
 plt.title("Average Latency by Pattern Size")
 plt.xlabel("Pattern Size")
 plt.ylabel("Average Latency (ms)")
-plt.show()
+plt.savefig('results/latency_by_pattern_size.png')
 
 avg_latency_by_nb_patterns = results.groupby('nb_patterns')['latency_avg'].mean()
 avg_latency_by_nb_patterns.plot(kind='bar')
 plt.title("Average Latency by Number of Patterns")
 plt.xlabel("Number of Patterns")
 plt.ylabel("Average Latency (ms)")
-plt.show()
+plt.savefig('results/latency_by_nb_patterns.png')
 
 
 avg_latency_by_threads = results.groupby('threads')['latency_avg'].mean()
@@ -123,7 +121,7 @@ avg_latency_by_threads.plot(kind='bar')
 plt.title("Average Latency by Number of Threads")
 plt.xlabel("Number of Threads")
 plt.ylabel("Average Latency (ms)")
-plt.show()
+plt.savefig('results/latency_by_threads.png')
 
 
 avg_latency_by_connections = results.groupby('connections')['latency_avg'].mean()
@@ -131,7 +129,7 @@ avg_latency_by_connections.plot(kind='bar')
 plt.title("Average Latency by Connections")
 plt.xlabel("Number of Connections")
 plt.ylabel("Average Latency (ms)")
-plt.show()
+plt.savefig('results/latency_by_connections.png')
 
 
 data_read_by_connection_count = results.groupby('connections')['data_read'].mean()
@@ -139,7 +137,9 @@ data_read_by_connection_count.plot()
 plt.title("Data Read by Connection Count")
 plt.xlabel("Number of Connections")
 plt.ylabel("Data Read (bytes)")
-plt.show()
+plt.savefig('results/data_read_by_connection_count.png')
+### 3D scatter plot, x = matrix size, y = number of patterns, z = pattern size, color = average latency
+
 
 
 data_read_by_matrix_size = results.groupby('matsize')['data_read'].mean()
@@ -147,7 +147,7 @@ data_read_by_matrix_size.plot()
 plt.title("Data Read by Matrix Size")
 plt.xlabel("Matrix Size")
 plt.ylabel("Data Read (bytes)")
-plt.show()
+plt.savefig('results/data_read_by_matrix_size.png')
 
 
 # show a graph showing the average latency by matrix size for different number of connections
@@ -196,7 +196,17 @@ plt.show()
 ## 3. average latency versus matrix size/number of patterns/pattern size
 ## barplot, x = matrix size, y = average latency
 
-### 3D plot, x = matrix size, y = number of patterns, z = pattern size, color = average latency
+### 3D scatter plot, x = matrix size, y = number of patterns, z = pattern size, color = average latency
+ax = plt.figure().add_subplot(projection='3d')
 
-scatter3D = plt.figure().add_subplot(projection='3d')
+sc = ax.scatter(results['matsize'], results['nb_patterns'], results['patterns_size'], c=results['latency_avg'], cmap='viridis')
 
+ax.set_xlabel('Matrix Size')
+ax.set_ylabel('Number of Patterns')
+ax.set_zlabel('Pattern Size')
+plt.title("Average Latency by Matrix Size, Number of Patterns, and Pattern Size")
+
+cbar = plt.colorbar(sc)
+cbar.set_label('Average Latency (ms)')
+
+plt.savefig('results/latency_by_matrix_size_patterns_size.png')
