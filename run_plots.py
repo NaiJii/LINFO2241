@@ -5,6 +5,12 @@ import numpy as np
 
 
 results = pd.read_csv("performance_data.csv")
+result_count = len(results)
+print(f"Total number of results: {result_count}")
+
+# filter out tests with requests == 0
+results = results[results['requests'] > 0]
+print(f"Number of results after filtering out tests with 0 requests: {len(results)}")
 
 # print how much data
 print("Result count = ", len(results))
@@ -189,3 +195,8 @@ plt.show()
 
 ## 3. average latency versus matrix size/number of patterns/pattern size
 ## barplot, x = matrix size, y = average latency
+
+### 3D plot, x = matrix size, y = number of patterns, z = pattern size, color = average latency
+
+scatter3D = plt.figure().add_subplot(projection='3d')
+
