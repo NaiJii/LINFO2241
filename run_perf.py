@@ -116,17 +116,19 @@ def performance_analysis(runs, max_workers):
 def main():
     # check if the file exists, if it does, ignore runs for which the results already exist
     try:
-        results = pd.read_csv("performance_data.csv")
+        results = pd.read_csv("performance_datajbuhb.csv")
     except FileNotFoundError:
         results = pd.DataFrame(columns=['matsize', 'patterns_size', 'nb_patterns', 'duration', 'threads', 'connections', 'throughput', 'latency_avg', 'latency_stdev', 'latency_max', 'requests', 'data_read', 'requests_per_sec', 'transfer_per_sec'])
 
-    matsize = [8, 16, 32, 64, 128]
-    pattern_size = [8, 16, 32, 64, 128]   
-    pattern_count = [1, 2, 4, 8, 16] 
-    benchmark_duration = [10, 20]
-    thread_count = [1, 2, 4]
-    http_connections = [10, 100, 1000, 10000]
-    throughput = [1000, 2000]
+    matsize = [64]
+    pattern_size = [64]   
+    pattern_count = [10] 
+    benchmark_duration = [10]
+    thread_count = [1]
+    http_connections = []
+    for i in range(100, 10000, 100):
+        http_connections.append(i)
+    throughput = [1000]
     
     run_configs = []
     for m in matsize:
@@ -153,11 +155,11 @@ def main():
     if input("Start the performance analysis? (y/n): ").lower() != 'y':
         return
     
-    max_workers = 4  # Set the maximum number of concurrent threads
+    max_workers = 1   # Set the maximum number of concurrent threads
     performance_data = performance_analysis(run_configs, max_workers)
     
     new_results = pd.DataFrame(performance_data)
-    pd.concat([results, new_results], ignore_index=True).to_csv("performance_data.csv", index=False)
+    pd.concat([results, new_results], ignore_index=True).to_csv("performance_data_temp.csv", index=False)
     
 if __name__ == "__main__":
     main()
