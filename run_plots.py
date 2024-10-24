@@ -10,8 +10,23 @@ print(f"Total number of results: {result_count}")
 results = results[results['requests'] > 0]
 print(f"Number of results after filtering out tests with 0 requests: {len(results)}")
 
-# print how much data
-print("Result count = ", len(results))
+# matsize,patterns_size,nb_patterns,duration,threads,connections,throughput,latency_avg,latency_stdev,latency_max,requests,data_read,requests_per_sec,transfer_per_sec
+
+
+# get data for specific case(s) to avoid clutter, 
+# e,g, get data for 1000 connections, 1 thread
+# make it so the functions accepts any number of strings 
+# and then filters the data based on those strings
+def get_data(*args):
+    data = results
+    for arg in args:
+        data = data[data[arg[0]] == arg[1]]
+    return data
+
+# get data for 1000 connections, 1 thread, 10s duration, 2000 throughput
+d1 = get_data(('connections', 1000), ('threads', 1), ('duration', 10), ('throughput', 2000))
+print(len(d1))
+
 
 plt.matshow(results.corr())
 plt.xticks(range(len(results.columns)), results.columns, rotation='vertical')
@@ -65,7 +80,6 @@ plt.scatter(results['latency_avg'], results['throughput'])
 plt.title("Throughput vs. Latency Avg")
 plt.xlabel("Average Latency (ms)")
 plt.ylabel("Throughput (req/sec)")
-plt.show()
 plt.savefig('results/latency_avg_vs_throughput.png')
 plt.clf()
 
@@ -203,7 +217,8 @@ plt.clf()
 ### 3D scatter plot, x = matrix size, y = number of patterns, z = pattern size, color = average latency
 ax = plt.figure().add_subplot(projection='3d')
 
-sc = ax.scatter(results['matsize'], results['nb_patterns'], results['patterns_size'], c=results['latency_avg'], cmap='viridis')
+# make it logarithmic
+sc = ax.scatter(d1['matsize'], d1['nb_patterns'], d1['patterns_size'], c=d1['latency_avg'], cmap='viridis')
 
 ax.set_xlabel('Matrix Size')
 ax.set_ylabel('Number of Patterns')
@@ -214,6 +229,6 @@ cbar = plt.colorbar(sc)
 cbar.set_label('Average Latency (ms)')
 
 plt.show()
+plt.savefig('results/latency_by_matrix_size_patterns_size.png')
 plt.clf()
 
-plt.savefig('results/latency_by_matrix_size_patterns_size.png')

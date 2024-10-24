@@ -1,5 +1,6 @@
 import subprocess
 import re
+import pandas as pd
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def run_command(matsize, patterns_size, nb_patterns, duration, threads, connections, throughput):
@@ -113,14 +114,18 @@ def performance_analysis(runs, max_workers):
     return all_results
 
 def main():
+    # check if the file exists, if it does, ignore runs for which the results already exist
+    try:
+        results = pd.read_csv("performance_data.csv")
+    except FileNotFoundError:
+        results = pd.DataFrame(columns=['matsize', 'patterns_size', 'nb_patterns', 'duration', 'threads', 'connections', 'throughput', 'latency_avg', 'latency_stdev', 'latency_max', 'requests', 'data_read', 'requests_per_sec', 'transfer_per_sec'])
+
     matsize = [8, 16, 32, 64, 128]
-    pattern_size = [8, 16, 32, 64, 128]
-    # pattern_size = [512, 1024, 2048]
-    
+    pattern_size = [8, 16, 32, 64, 128]   
     pattern_count = [1, 2, 4, 8, 16] 
     benchmark_duration = [10, 20]
     thread_count = [1, 2, 4]
-    http_connections = [10, 100, 1000]
+    http_connections = [10, 100, 1000, 10000]
     throughput = [1000, 2000]
     
     run_configs = []
@@ -132,23 +137,27 @@ def main():
                         for c in http_connections:
                             for tp in throughput:
                                 run_configs.append((m, p, n, d, t, c, tp))
-    
+                                
     # matrix size ** 2 >= pattern size 
     run_configs = [run for run in run_configs if run[0] ** 2 >= run[1]]
     
     # thread count <= http connections
     run_configs = [run for run in run_configs if run[4] <= run[5]]
     
+    existing_runs = results[['matsize', 'patterns_size', 'nb_patterns', 'duration', 'threads', 'connections', 'throughput']].apply(tuple, axis=1).tolist()
+
+    run_configs = [run for run in run_configs if run not in existing_runs]
+
     print(f"Total number of runs: {len(run_configs)}")
+    
+    if input("Start the performance analysis? (y/n): ").lower() != 'y':
+        return
     
     max_workers = 4  # Set the maximum number of concurrent threads
     performance_data = performance_analysis(run_configs, max_workers)
-
-    # save performance data to a csv file
-    with open('performance_data.csv', 'w') as f:
-        f.write('matsize,patterns_size,nb_patterns,duration,threads,connections,throughput,latency_avg,latency_stdev,latency_max,requests,data_read,requests_per_sec,transfer_per_sec\n')
-        for data in performance_data:
-            f.write(f"{data['matsize']},{data['patterns_size']},{data['nb_patterns']},{data['duration']},{data['threads']},{data['connections']},{data['throughput']},{data['latency_avg']},{data['latency_stdev']},{data['latency_max']},{data['requests']},{data['data_read']},{data['requests_per_sec']},{data['transfer_per_sec']}\n")
-
+    
+    new_results = pd.DataFrame(performance_data)
+    pd.concat([results, new_results], ignore_index=True).to_csv("performance_data.csv", index=False)
+    
 if __name__ == "__main__":
     main()
