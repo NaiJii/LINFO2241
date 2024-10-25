@@ -120,14 +120,12 @@ def main():
     except FileNotFoundError:
         results = pd.DataFrame(columns=['matsize', 'patterns_size', 'nb_patterns', 'duration', 'threads', 'connections', 'throughput', 'latency_avg', 'latency_stdev', 'latency_max', 'requests', 'data_read', 'requests_per_sec', 'transfer_per_sec'])
 
-    matsize = []
-    pattern_size = [64]   
-    pattern_count = [10] 
+    matsize = [8 * 2 ** i for i in range(7)]
+    pattern_size = [8 * 2 ** i for i in range(7)]  
+    pattern_count = [8, 16, 32]
     benchmark_duration = [10]
     thread_count = [1]
     http_connections = [4200]
-    for i in range(3, 8):
-        matsize.append(2 ** i)
     throughput = [1000]
     
     run_configs = []
@@ -155,7 +153,7 @@ def main():
     if input("Start the performance analysis? (y/n): ").lower() != 'y':
         return
     
-    max_workers = 1   # Set the maximum number of concurrent threads
+    max_workers = 4   # Set the maximum number of concurrent threads
     performance_data = performance_analysis(run_configs, max_workers)
     
     new_results = pd.DataFrame(performance_data)

@@ -27,8 +27,8 @@ def get_data(*args):
 d1 = get_data(('connections', 1000), ('threads', 1), ('duration', 10), ('throughput', 2000))
 print(len(d1))
 
-temp = get_data(('threads', 1), ('duration', 10), ('throughput', 1000), ('patterns_size', 64), ('connections', 4200))
-print(len(d1))
+temp = get_data(('threads', 1), ('duration', 20), ('throughput', 1000), ('connections', 10000))
+print(len(temp))
 
 plt.clf()
 
@@ -39,23 +39,21 @@ def list_fix(x, isSorted = False, factor = 1):
         temp_list.sort()
     return temp_list
 
-x = temp['connections']
+if False:
+    a = list_fix(temp['matsize'], isSorted=True)
+    b = list_fix(temp['latency_avg'], factor=0.001)
+    c = list_fix(temp['latency_stdev'], factor=0.001)
 
-a = list_fix(temp['matsize'], isSorted=True)
-b = list_fix(temp['latency_avg'], factor=0.001)
-c = list_fix(temp['latency_stdev'], factor=0.001)
-print(a)
-
-fig, ax = plt.subplots()
-ax.errorbar(a, b, yerr=c, label='Latency (seconds)')
-ax.set_xscale('log', base=2)
-plt.legend()
-plt.xlabel('Matrix size')
-plt.ylabel('Average latency (seconds)')
-plt.title('Average latency by matrix size')
-plt.savefig('hejsan')
-plt.show()
-plt.clf()
+    fig, ax = plt.subplots()
+    ax.errorbar(a, b, yerr=c, label='Latency (seconds)')
+    ax.set_xscale('log', base=2)
+    plt.legend()
+    plt.xlabel('Matrix size')
+    plt.ylabel('Average latency (seconds)')
+    plt.title('Average latency by matrix size')
+    plt.savefig('hejsan')
+    plt.show()
+    plt.clf()
 
 '''
 # example data
@@ -66,6 +64,7 @@ fig, ax = plt.subplots()
 ax.errorbar(x, y, xerr=0.2, yerr=0.4)
 plt.savefig('hejsan')
 '''
+
 plt.matshow(results.corr())
 plt.xticks(range(len(results.columns)), results.columns, rotation='vertical')
 plt.yticks(range(len(results.columns)), results.columns)
@@ -253,20 +252,29 @@ plt.clf()
 ## barplot, x = matrix size, y = average latency
 
 ### 3D scatter plot, x = matrix size, y = number of patterns, z = pattern size, color = average latency
-ax = plt.figure().add_subplot(projection='3d')
 
-# make it logarithmic
-sc = ax.scatter(d1['matsize'], d1['nb_patterns'], d1['patterns_size'], c=d1['latency_avg'], cmap='viridis')
 
-ax.set_xlabel('Matrix Size')
-ax.set_ylabel('Number of Patterns')
-ax.set_zlabel('Pattern Size')
-plt.title("Average Latency by Matrix Size, Number of Patterns, and Pattern Size")
+if True:
+    # set all parameters to get data for a specific case
+    # e.g. get data for 1 thread, 20s duration, 1000 throughput, 10000 connections
+    scatterdata = get_data(('threads', 1), ('duration', 20), ('throughput', 1000), ('connections', 10000))
+    print("3D scatter plot: ", len(scatterdata))
+    
+    ax = plt.figure().add_subplot(projection='3d')
+    sc = ax.scatter(scatterdata['matsize'], scatterdata['nb_patterns'], scatterdata['patterns_size'], c=scatterdata['latency_avg'], cmap='viridis')
 
-cbar = plt.colorbar(sc)
-cbar.set_label('Average Latency (ms)')
+    ax.set_xlabel('Matrix Size')
+    #ax.set_xscale('log', base=2)
+    ax.set_ylabel('Number of Patterns')
+    #@ ax.set_yscale('log', base=2)
+    ax.set_zlabel('Pattern Size')
+    #ax.set_zscale('log', base=2)
+    plt.title("Average Latency by Matrix Size, Number of Patterns, and Pattern Size")
 
-plt.show()
-plt.savefig('results/latency_by_matrix_size_patterns_size.png')
-plt.clf()
+    cbar = plt.colorbar(sc)
+    cbar.set_label('Average Latency (ms)')
+
+    plt.show()
+    plt.savefig('results/latency_by_matrix_size_patterns_size.png')
+    plt.clf()
 
