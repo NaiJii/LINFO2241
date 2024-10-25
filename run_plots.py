@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-results = pd.read_csv("performance_data.csv")
+results = pd.read_csv("performance_data_temp.csv")
 result_count = len(results)
 print(f"Total number of results: {result_count}")
 
@@ -27,18 +27,44 @@ def get_data(*args):
 d1 = get_data(('connections', 1000), ('threads', 1), ('duration', 10), ('throughput', 2000))
 print(len(d1))
 
-# errorbar for connection count
-# avg latency y, connection count x
-# get the connections y axis, sorted and with unique 
-y = d1['connections'].unique()
-y.sort()
+temp = get_data(('threads', 1), ('duration', 10), ('throughput', 1000), ('patterns_size', 64), ('matsize', 64))
+print(len(d1))
 
+plt.clf()
 
+def list_fix(x, isSorted = False, factor = 1):
+    temp_list = list(x)
+    temp_list = [i*factor for i in temp_list]
+    if isSorted:
+        temp_list.sort()
+    return temp_list
 
-ax = plt.add_subplot()
-ax.errorbar(d1['connections'], d1['latency_avg'], yerr=d1['latency_stdev'], fmt='o')
+x = temp['connections']
 
+a = list_fix(temp['connections'], isSorted=True)[5::2]
+b = list_fix(temp['latency_avg'], factor=0.001)[5::2]
+c = list_fix(temp['latency_stdev'], factor=0.001)[5::2]
+print(a)
 
+fig, ax = plt.subplots()
+ax.errorbar(a, b, yerr=c, label='Latency (seconds)')
+plt.legend()
+plt.xlabel('Number of connections')
+plt.ylabel('Average latency (seconds)')
+plt.title('Average latency by number of connections')
+plt.savefig('hejsan')
+plt.show()
+plt.clf()
+
+'''
+# example data
+x = np.arange(0.1, 4, 0.5)
+y = np.exp(-x)
+
+fig, ax = plt.subplots()
+ax.errorbar(x, y, xerr=0.2, yerr=0.4)
+plt.savefig('hejsan')
+'''
 plt.matshow(results.corr())
 plt.xticks(range(len(results.columns)), results.columns, rotation='vertical')
 plt.yticks(range(len(results.columns)), results.columns)
