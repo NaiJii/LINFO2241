@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-results = pd.read_csv("performance_data_temp.csv")
+results = pd.read_csv("performance_data.csv")
 result_count = len(results)
 print(f"Total number of results: {result_count}")
 
@@ -27,7 +27,7 @@ def get_data(*args):
 d1 = get_data(('connections', 1000), ('threads', 1), ('duration', 10), ('throughput', 2000))
 print(len(d1))
 
-temp = get_data(('threads', 1), ('duration', 10), ('throughput', 1000), ('patterns_size', 64), ('matsize', 64))
+temp = get_data(('threads', 1), ('duration', 10), ('throughput', 1000), ('patterns_size', 64), ('connections', 4200))
 print(len(d1))
 
 plt.clf()
@@ -41,17 +41,18 @@ def list_fix(x, isSorted = False, factor = 1):
 
 x = temp['connections']
 
-a = list_fix(temp['connections'], isSorted=True)[5::2]
-b = list_fix(temp['latency_avg'], factor=0.001)[5::2]
-c = list_fix(temp['latency_stdev'], factor=0.001)[5::2]
+a = list_fix(temp['matsize'], isSorted=True)
+b = list_fix(temp['latency_avg'], factor=0.001)
+c = list_fix(temp['latency_stdev'], factor=0.001)
 print(a)
 
 fig, ax = plt.subplots()
 ax.errorbar(a, b, yerr=c, label='Latency (seconds)')
+ax.set_xscale('log', base=2)
 plt.legend()
-plt.xlabel('Number of connections')
+plt.xlabel('Matrix size')
 plt.ylabel('Average latency (seconds)')
-plt.title('Average latency by number of connections')
+plt.title('Average latency by matrix size')
 plt.savefig('hejsan')
 plt.show()
 plt.clf()

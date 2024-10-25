@@ -120,14 +120,14 @@ def main():
     except FileNotFoundError:
         results = pd.DataFrame(columns=['matsize', 'patterns_size', 'nb_patterns', 'duration', 'threads', 'connections', 'throughput', 'latency_avg', 'latency_stdev', 'latency_max', 'requests', 'data_read', 'requests_per_sec', 'transfer_per_sec'])
 
-    matsize = [64]
+    matsize = []
     pattern_size = [64]   
     pattern_count = [10] 
     benchmark_duration = [10]
     thread_count = [1]
-    http_connections = []
-    for i in range(100, 10000, 100):
-        http_connections.append(i)
+    http_connections = [4200]
+    for i in range(3, 8):
+        matsize.append(2 ** i)
     throughput = [1000]
     
     run_configs = []
