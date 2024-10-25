@@ -153,7 +153,7 @@ def main():
     if input("Start the performance analysis? (y/n): ").lower() != 'y':
         return
     
-    max_workers = 4   # Set the maximum number of concurrent threads
+    max_workers = 1 # sequential execution
     performance_data = performance_analysis(run_configs, max_workers)
     
     new_results = pd.DataFrame(performance_data)
