@@ -1,0 +1,123 @@
+{
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "Debug",
+            "command": "make",
+            "args": [
+                "run_debug"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/project/server_implementation"
+            },
+            "problemMatcher": [],
+            "group": "build",
+            "detail": "Runs debug config"
+        },
+        {
+            "type": "shell",
+            "label": "Release",
+            "command": "make",
+            "args": [
+                "run_release"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/project/server_implementation"
+            },
+            "problemMatcher": [],
+            "group": "build",
+            "detail": "Runs release config"
+        },
+        {
+            "type": "shell",
+            "label": "GDB",
+            "command": "make",
+            "args": [
+                "run_gdb"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/project/server_implementation"
+            },
+            "problemMatcher": [],
+            "group": "build",
+            "detail": "Runs gdb config"
+        }
+        // shell command bash ./student_helper/send_request.sh
+        {
+            "type": "shell",
+            "label": "Send Request",
+            "command": "bash",
+            "args": [
+                "./student_helper/send_request.sh"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": "build",
+            "detail": "Runs send request"
+        }{
+            "tasks": [
+                {
+                    "type": "shell",
+                    "label": "Debug",
+                    "command": "make",
+                    "args": [
+                        "run_debug"
+                    ],
+                    "options": {
+                        "cwd": "${workspaceFolder}/project/server_implementation"
+                    },
+                    "problemMatcher": [],
+                    "group": "build",
+                    "detail": "Runs debug config"
+                },
+                {
+                    "type": "shell",
+                    "label": "Release",
+                    "command": "make",
+                    "args": [
+                        "run_release"
+                    ],
+                    "options": {
+                        "cwd": "${workspaceFolder}/project/server_implementation"
+                    },
+                    "problemMatcher": [],
+                    "group": "build",
+                    "detail": "Runs release config"
+                },
+                {
+                    "type": "shell",
+                    "label": "GDB",
+                    "command": "make",
+                    "args": [
+                        "run_gdb"
+                    ],
+                    "options": {
+                        "cwd": "${workspaceFolder}/project/server_implementation"
+                    },
+                    "problemMatcher": [],
+                    "group": "build",
+                    "detail": "Runs gdb config"
+                }
+                // shell command bash ./student_helper/send_request.sh
+                {
+                    "type": "shell",
+                    "label": "Send Request",
+                    "command": "bash",
+                    "args": [
+                        "./student_helper/send_request.sh"
+                    ],
+                    "options": {
+                        "cwd": "${workspaceFolder}"
+                    },
+                    "problemMatcher": [],
+                    "group": "build",
+                    "detail": "Runs send request"
+                }
+            ],
+            "version": "2.0.0"
+        }
+    ],
+    "version": "2.0.0"
+}

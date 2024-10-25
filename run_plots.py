@@ -27,6 +27,17 @@ def get_data(*args):
 d1 = get_data(('connections', 1000), ('threads', 1), ('duration', 10), ('throughput', 2000))
 print(len(d1))
 
+# errorbar for connection count
+# avg latency y, connection count x
+# get the connections y axis, sorted and with unique 
+y = d1['connections'].unique()
+y.sort()
+
+
+
+ax = plt.add_subplot()
+ax.errorbar(d1['connections'], d1['latency_avg'], yerr=d1['latency_stdev'], fmt='o')
+
 
 plt.matshow(results.corr())
 plt.xticks(range(len(results.columns)), results.columns, rotation='vertical')
