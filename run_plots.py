@@ -56,20 +56,13 @@ plt.colorbar()
 plt.title('Correlation matrix')
 plt.savefig('results/correlation.svg', bbox_inches='tight', format='svg')
 
-# plt.scatter(results['latency_avg'], results['throughput'])
-# plt.title("Throughput vs. Latency Avg")
-# plt.xlabel("Average Latency (ms)")
-# plt.ylabel("Throughput (req/sec)")
-# plt.savefig('results/latency_avg_vs_throughput.svg', format='svg')
-# plt.clf()
-
-# avg_latency = results.groupby('patterns_size')['latency_avg'].mean()
-# avg_latency.plot(kind='bar')
-# plt.title("Average Latency by Pattern Size")
-# plt.xlabel("Pattern Size")
-# plt.ylabel("Average Latency (ms)")
-# plt.savefig('results/latency_by_pattern_size.svg', format='svg')
-# plt.clf()
+avg_latency = results.groupby('patterns_size')['latency_avg'].mean()
+avg_latency.plot(kind='bar')
+plt.title("Average Latency by Pattern Size")
+plt.xlabel("Pattern Size")
+plt.ylabel("Average Latency (ms)")
+plt.savefig('results/latency_by_pattern_size.svg', format='svg')
+plt.clf()
 
 requests_per_sec = results.groupby('connections')['requests_per_sec'].mean()
 requests_per_sec.plot(kind='bar')
@@ -86,29 +79,21 @@ plt.ylabel("Latency (ms)")
 plt.savefig('results/latency_by_nb_patterns.svg', format='svg')
 plt.clf()
 
-# avg_latency_by_matrix = results.groupby('matsize')['latency_avg'].mean()
-# avg_latency_by_matrix.plot(kind='bar')
-# plt.title("Average Latency by Matrix Size")
-# plt.xlabel("Matrix Size")
-# plt.ylabel("Average Latency (ms)")
-# plt.savefig('results/latency_by_matrix_size.svg', format='svg')
-# plt.clf()
+avg_latency_by_matrix = results.groupby('matsize')['latency_avg'].mean()
+avg_latency_by_matrix.plot(kind='bar')
+plt.title("Average Latency by Matrix Size")
+plt.xlabel("Matrix Size")
+plt.ylabel("Average Latency (ms)")
+plt.savefig('results/latency_by_matrix_size.svg', format='svg')
+plt.clf()
 
-#avg_latency_by_pattern = results.groupby('patterns_size')['latency_avg'].mean()
-#avg_latency_by_pattern.plot(kind='bar')
-#plt.title("Average Latency by Pattern Size")
-#plt.xlabel("Pattern Size")
-#plt.ylabel("Average Latency (ms)")
-#plt.savefig('results/latency_by_pattern_size.svg', format='svg')
-#plt.clf()
-
-#avg_latency_by_nb_patterns = results.groupby('nb_patterns')['latency_avg'].mean()
-#avg_latency_by_nb_patterns.plot(kind='bar')
-#plt.title("Average Latency by Number of Patterns")
-#plt.xlabel("Number of Patterns")
-#plt.ylabel("Average Latency (ms)")
-#plt.savefig('results/latency_by_nb_patterns.svg', format='svg')
-#plt.clf()
+avg_latency_by_nb_patterns = results.groupby('nb_patterns')['latency_avg'].mean()
+avg_latency_by_nb_patterns.plot(kind='bar')
+plt.title("Average Latency by Number of Patterns")
+plt.xlabel("Number of Patterns")
+plt.ylabel("Average Latency (ms)")
+plt.savefig('results/latency_by_nb_patterns.svg', format='svg')
+plt.clf()
 
 #avg_latency_by_threads = results.groupby('threads')['latency_avg'].mean()
 #avg_latency_by_threads.plot(kind='bar')
@@ -147,7 +132,7 @@ plt.clf()
 # plt.clf()
 
 ## 3. average latency versus matrix size/number of patterns/pattern size
-if False:  
+if True:  
     x = list_fix(t1_d20_tp1K_c100['matsize'], isSorted=False)
     y = list_fix(t1_d20_tp1K_c100['patterns_size'], isSorted=False)
     z = list_fix(t1_d20_tp1K_c100['nb_patterns'], isSorted=False)
@@ -156,7 +141,6 @@ if False:
     x = np.log2(x)
     y = np.log2(y)
     z = np.log2(z)
-    #print(x, y, z, c)
      
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
@@ -215,7 +199,6 @@ if False:
     plt.show()
     plt.clf()
     
-
 if False:
     # t1_d20_tp1K_c100 = results[(results['threads'] == 1) & (results['duration'] == 20) & (results['throughput'] == 1000) & (results['connections'] == 100)]
     a = results[(results['duration'] == 20) & (results['matsize'] == 32) & (results['patterns_size'] == 32) & (results['nb_patterns'] == 8)]
@@ -262,19 +245,6 @@ if True:
     plt.title("Latency Distribution by Matrix Size (logrithmic scale)")
     plt.savefig('results/latency_distribution_by_matrix_size.svg', format='svg')
     plt.show()
-    
-    # same graph but with bar chart
-    fig = plt.figure()
-    ax = fig.add_subplot()
-    
-    x = t1_d20_tp1K_c100['matsize'].unique()
-    y = [t1_d20_tp1K_c100[t1_d20_tp1K_c100['matsize'] == i]['latency_avg'] for i in x]
-    # divide by 1000 to get seconds
-    # log scale
-    # y = [np.log10(i) for i in y]
-    
-    # one boxplot for each matrix size
-    print(y)
     
     
     
