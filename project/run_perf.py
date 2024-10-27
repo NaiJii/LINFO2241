@@ -114,12 +114,12 @@ def main():
         results = pd.DataFrame(columns=['matsize', 'patterns_size', 'nb_patterns', 'duration', 'threads', 'connections', 'throughput', 'latency_avg', 'latency_stdev', 'latency_max', 'requests', 'data_read', 'requests_per_sec', 'transfer_per_sec'])
 
     # change parameters here to append to performance data.
-    matsize = [8 * 2 ** i for i in range(7)]
-    pattern_size = [8 * 2 ** i for i in range(7)]  
-    pattern_count = [8, 16, 32]
+    matsize = [8]
+    pattern_size = [8]  
+    pattern_count = [1]
     benchmark_duration = [10]
     thread_count = [1]
-    http_connections = [4200]
+    http_connections = [1000]
     throughput = [1000]
     
     run_configs = []
@@ -144,13 +144,10 @@ def main():
 
     print(f"Total number of runs: {len(run_configs)}")
     
-    if input("Start the performance analysis? (y/n): ").lower() != 'y':
-        return
-    
     performance_data = performance_analysis(run_configs)
     
     new_results = pd.DataFrame(performance_data)
-    pd.concat([results, new_results], ignore_index=True).to_csv("performance_data_temp.csv", index=False)
+    pd.concat([results, new_results], ignore_index=True).to_csv("performance_data.csv", index=False)
     
 if __name__ == "__main__":
     main()

@@ -2,17 +2,21 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
+import os
+if not os.path.exists('measurements'):
+    os.makedirs('measurements')
+
 plt.tight_layout()
 
 results = pd.read_csv("performance_data.csv")
-temp_results = pd.read_csv("performance_data_temp2.csv")
+#temp_results = pd.read_csv("performance_data_temp2.csv")
 
 result_count = len(results)
 print(f"Total number of results: {result_count}")
 
 # filter out tests with requests == 0
 results = results[results['requests'] > 0]
-temp_results = temp_results[temp_results['requests'] > 0]
+#temp_results = temp_results[temp_results['requests'] > 0]
 print(f"Number of results after filtering out tests with 0 requests: {len(results)}")
 
 def list_fix(x, isSorted = False, factor = 1):
@@ -29,7 +33,7 @@ t1_d20_tp1K_c1K = results[(results['threads'] == 1) & (results['duration'] == 20
 t1_d20_tp1K_c100 = results[(results['threads'] == 1) & (results['duration'] == 20) & (results['throughput'] == 1000) & (results['connections'] == 100)]
 
 # 10,1,4200,1000
-t1_d10_tp1K_c4200 = temp_results[(temp_results['threads'] == 1) & (temp_results['duration'] == 10) & (temp_results['throughput'] == 1000) & (temp_results['connections'] == 4200)]
+# t1_d10_tp1K_c4200 = temp_results[(temp_results['threads'] == 1) & (temp_results['duration'] == 10) & (temp_results['throughput'] == 1000) & (temp_results['connections'] == 4200)]
 
 if False:
     a = list_fix(t1_d20_tp1K_c10K['matsize'], isSorted=True)
@@ -44,7 +48,7 @@ if False:
     plt.ylabel('Average latency (seconds)')
     plt.title('Average latency by matrix size')
     plt.savefig('hejsan', format='svg')
-    plt.show()
+    # plt.show()
     plt.clf()
 
 # remove the "throughput" column from the correlation matrix
@@ -55,6 +59,7 @@ plt.yticks(range(len(temp.columns)), temp.columns)
 plt.colorbar()
 plt.title('Correlation matrix')
 plt.savefig('measurements/correlation.svg', bbox_inches='tight', format='svg')
+plt.clf()
 
 avg_latency = results.groupby('patterns_size')['latency_avg'].mean()
 avg_latency.plot(kind='bar')
@@ -154,7 +159,7 @@ if True:
     cbar = plt.colorbar(sc)
     cbar.set_label('Average Latency (s)')
 
-    plt.show()
+    # plt.show()
     plt.savefig('measurements/latency_by_matrix_size_patterns_size.svg', format='svg')
     plt.clf()
 
@@ -173,7 +178,7 @@ if False:
     ax.set_ylabel('Average Latency (s)')
     plt.title("Average Latency by Number of Connections")
     plt.savefig('measurements/latency_by_connections.svg', format='svg')
-    plt.show()
+    # plt.show()
     plt.clf()
     
 if False:
@@ -196,7 +201,7 @@ if False:
     ax2.set_ylabel('Requests per Second', color='g')
     plt.title("Transfer per Second and Requests per Second by Matrix Size")
     plt.savefig('measurements/transfer_requests_by_matrix_size.svg', format='svg')
-    plt.show()
+    # plt.show()
     plt.clf()
     
 if False:
@@ -221,7 +226,7 @@ if False:
     plt.title("Requests per Second and Transfer per Second by Number of Connections")
     plt.legend()
     
-    plt.show()
+    # plt.show()
     plt.savefig('measurements/requests_transfer_by_connections.svg', format='svg')
     plt.clf()
     results
@@ -235,7 +240,7 @@ if True:
     # divide by 1000 to get seconds
     y = [list_fix(i, isSorted=False, factor=0.001) for i in y]
     # log scale
-    y = [np.log10(i) for i in y]
+    # y = [np.log10(i) for i in y]
     
     # one boxplot for each matrix size
     ax.boxplot(y, labels=x)
@@ -244,8 +249,5 @@ if True:
 
     plt.title("Latency Distribution by Matrix Size (logrithmic scale)")
     plt.savefig('measurements/latency_distribution_by_matrix_size.svg', format='svg')
-    plt.show()
-    
-    
-    
-# 
+    ## plt.show()
+    plt.clf()
