@@ -54,14 +54,14 @@ plt.xticks(range(len(temp.columns)), temp.columns, rotation='vertical')
 plt.yticks(range(len(temp.columns)), temp.columns)
 plt.colorbar()
 plt.title('Correlation matrix')
-plt.savefig('results/correlation.svg', bbox_inches='tight', format='svg')
+plt.savefig('measurements/correlation.svg', bbox_inches='tight', format='svg')
 
 avg_latency = results.groupby('patterns_size')['latency_avg'].mean()
 avg_latency.plot(kind='bar')
 plt.title("Average Latency by Pattern Size")
 plt.xlabel("Pattern Size")
 plt.ylabel("Average Latency (ms)")
-plt.savefig('results/latency_by_pattern_size.svg', format='svg')
+plt.savefig('measurements/latency_by_pattern_size.svg', format='svg')
 plt.clf()
 
 requests_per_sec = results.groupby('connections')['requests_per_sec'].mean()
@@ -69,14 +69,14 @@ requests_per_sec.plot(kind='bar')
 plt.title("Requests per Second by Connections")
 plt.xlabel("Number of Connections")
 plt.ylabel("Requests per Second")
-plt.savefig('results/requests_per_sec_by_connections.svg', format='svg')
+plt.savefig('measurements/requests_per_sec_by_connections.svg', format='svg')
 plt.clf()
 
 plt.boxplot([results[results['nb_patterns'] == n]['latency_avg'] for n in results['nb_patterns'].unique()], labels=results['nb_patterns'].unique())
 plt.title("Latency Distribution by Number of Patterns")
 plt.xlabel("Number of Patterns")
 plt.ylabel("Latency (ms)")
-plt.savefig('results/latency_by_nb_patterns.svg', format='svg')
+plt.savefig('measurements/latency_by_nb_patterns.svg', format='svg')
 plt.clf()
 
 avg_latency_by_matrix = results.groupby('matsize')['latency_avg'].mean()
@@ -84,7 +84,7 @@ avg_latency_by_matrix.plot(kind='bar')
 plt.title("Average Latency by Matrix Size")
 plt.xlabel("Matrix Size")
 plt.ylabel("Average Latency (ms)")
-plt.savefig('results/latency_by_matrix_size.svg', format='svg')
+plt.savefig('measurements/latency_by_matrix_size.svg', format='svg')
 plt.clf()
 
 avg_latency_by_nb_patterns = results.groupby('nb_patterns')['latency_avg'].mean()
@@ -92,7 +92,7 @@ avg_latency_by_nb_patterns.plot(kind='bar')
 plt.title("Average Latency by Number of Patterns")
 plt.xlabel("Number of Patterns")
 plt.ylabel("Average Latency (ms)")
-plt.savefig('results/latency_by_nb_patterns.svg', format='svg')
+plt.savefig('measurements/latency_by_nb_patterns.svg', format='svg')
 plt.clf()
 
 #avg_latency_by_threads = results.groupby('threads')['latency_avg'].mean()
@@ -100,7 +100,7 @@ plt.clf()
 #plt.title("Average Latency by Number of Threads")
 #plt.xlabel("Number of Threads")
 #plt.ylabel("Average Latency (ms)")
-#plt.savefig('results/latency_by_threads.svg', format='svg')
+#plt.savefig('measurements/latency_by_threads.svg', format='svg')
 #plt.clf()
 
 r = results[(results['threads'] == 1) & (results['duration'] == 20) & (results['throughput'] == 1000)]
@@ -112,7 +112,7 @@ data_.plot(kind='bar')
 plt.title("Average Latency by connections")
 plt.xlabel("Number of connections")
 plt.ylabel("Average Latency (s)")
-plt.savefig('results/latency_by_connections.svg', format='svg')
+plt.savefig('measurements/latency_by_connections.svg', format='svg')
 plt.clf()
 
 #data_read_by_connection_count = results.groupby('connections')['data_read'].mean()
@@ -120,7 +120,7 @@ plt.clf()
 #plt.title("Data Read by Connection Count")
 #plt.xlabel("Number of Connections")
 #plt.ylabel("Data Read (bytes)")
-#plt.savefig('results/data_read_by_connection_count.svg', format='svg')
+#plt.savefig('measurements/data_read_by_connection_count.svg', format='svg')
 #plt.clf()
 
 # data_read_by_matrix_size = results.groupby('matsize')['data_read'].mean()
@@ -128,7 +128,7 @@ plt.clf()
 # plt.title("Data Read by Matrix Size")
 # plt.xlabel("Matrix Size")
 # plt.ylabel("Data Read (bytes)")
-# plt.savefig('results/data_read_by_matrix_size.svg', format='svg')
+# plt.savefig('measurements/data_read_by_matrix_size.svg', format='svg')
 # plt.clf()
 
 ## 3. average latency versus matrix size/number of patterns/pattern size
@@ -155,7 +155,7 @@ if True:
     cbar.set_label('Average Latency (s)')
 
     plt.show()
-    plt.savefig('results/latency_by_matrix_size_patterns_size.svg', format='svg')
+    plt.savefig('measurements/latency_by_matrix_size_patterns_size.svg', format='svg')
     plt.clf()
 
 if False:
@@ -172,7 +172,7 @@ if False:
     ax.set_xlabel('Number of Connections')
     ax.set_ylabel('Average Latency (s)')
     plt.title("Average Latency by Number of Connections")
-    plt.savefig('results/latency_by_connections.svg', format='svg')
+    plt.savefig('measurements/latency_by_connections.svg', format='svg')
     plt.show()
     plt.clf()
     
@@ -195,7 +195,7 @@ if False:
     ax.set_ylabel('Transfer per Second (KB)', color='b')
     ax2.set_ylabel('Requests per Second', color='g')
     plt.title("Transfer per Second and Requests per Second by Matrix Size")
-    plt.savefig('results/transfer_requests_by_matrix_size.svg', format='svg')
+    plt.savefig('measurements/transfer_requests_by_matrix_size.svg', format='svg')
     plt.show()
     plt.clf()
     
@@ -222,9 +222,9 @@ if False:
     plt.legend()
     
     plt.show()
-    plt.savefig('results/requests_transfer_by_connections.svg', format='svg')
+    plt.savefig('measurements/requests_transfer_by_connections.svg', format='svg')
     plt.clf()
-    
+    results
 if True:
     # latency distribution by matrix size 
     fig = plt.figure()
@@ -243,7 +243,7 @@ if True:
     ax.set_ylabel('Average Latency (10^x s)')
 
     plt.title("Latency Distribution by Matrix Size (logrithmic scale)")
-    plt.savefig('results/latency_distribution_by_matrix_size.svg', format='svg')
+    plt.savefig('measurements/latency_distribution_by_matrix_size.svg', format='svg')
     plt.show()
     
     
