@@ -1,7 +1,6 @@
 import subprocess
 import re
 import pandas as pd
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def run_command(matsize, patterns_size, nb_patterns, duration, threads, connections, throughput):
     command = [
@@ -78,48 +77,43 @@ Transfer/sec:     19.52KB
         parsed_values['requests_per_sec'] = float(requests_sec_match.group(1))
     return parsed_values
 
-def performance_analysis(runs, max_workers):
+def performance_analysis(runs):
     all_results = []
-
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        future_to_run = {executor.submit(run_command, *run): run for run in runs}
-
-        for future in as_completed(future_to_run):
-            run = future_to_run[future]
-            matsize, patterns_size, nb_patterns, duration, threads, connections, throughput = run
-            try:
-                result = future.result()
-                if result:
-                    all_results.append({
-                        'matsize': matsize,
-                        'patterns_size': patterns_size,
-                        'nb_patterns': nb_patterns,
-                        'duration': duration,
-                        'threads': threads,
-                        'connections': connections,
-                        'throughput': throughput,
-                        'latency_avg': result.get('latency_avg', 0),
-                        'latency_stdev': result.get('latency_stdev', 0),
-                        'latency_max': result.get('latency_max', 0),
-                        'requests': result.get('requests', 0),
-                        'data_read': result.get('data_read', 0),
-                        'requests_per_sec': result.get('requests_per_sec', 0),
-                        'transfer_per_sec': result.get('transfer_per_sec', 0),
-                    })
-                    print(f"[{len(all_results) / len(runs) * 100:.2f}%] matsize={matsize}, patterns_size={patterns_size}, nb_patterns={nb_patterns}, d={duration}s, t={threads}, c={connections}, R={throughput}: {result}")
-                    # print(f"Results: {result} [{len(all_results) / len(runs) * 100:.2f}% complete]")
-            except Exception as e:
-                print(f"Run with matsize={matsize}, patterns_size={patterns_size}, nb_patterns={nb_patterns}, duration={duration}, threads={threads}, connections={connections}, throughput={throughput} failed with exception: {e}")
-
+    for run in runs:
+        matsize, patterns_size, nb_patterns, duration, threads, connections, throughput = run
+        try:
+            result = run_command(*run)
+            if result:
+                all_results.append({
+                    'matsize': matsize,
+                    'patterns_size': patterns_size,
+                    'nb_patterns': nb_patterns,
+                    'duration': duration,
+                    'threads': threads,
+                    'connections': connections,
+                    'throughput': throughput,
+                    'latency_avg': result.get('latency_avg', 0),
+                    'latency_stdev': result.get('latency_stdev', 0),
+                    'latency_max': result.get('latency_max', 0),
+                    'requests': result.get('requests', 0),
+                    'data_read': result.get('data_read', 0),
+                    'requests_per_sec': result.get('requests_per_sec', 0),
+                    'transfer_per_sec': result.get('transfer_per_sec', 0),
+                })
+                print(f"[{len(all_results) / len(runs) * 100:.2f}%] matsize={matsize}, patterns_size={patterns_size}, nb_patterns={nb_patterns}, d={duration}s, t={threads}, c={connections}, R={throughput}: {result}")
+                # print(f"Results: {result} [{len(all_results) / len(runs) * 100:.2f}% complete]")
+        except Exception as e:
+            print(f"Run with matsize={matsize}, patterns_size={patterns_size}, nb_patterns={nb_patterns}, duration={duration}, threads={threads}, connections={connections}, throughput={throughput} failed with exception: {e}")
     return all_results
 
 def main():
     # check if the file exists, if it does, ignore runs for which the results already exist
     try:
-        results = pd.read_csv("performance_datajbuhb.csv")
+        results = pd.read_csv("performance_data.csv")
     except FileNotFoundError:
         results = pd.DataFrame(columns=['matsize', 'patterns_size', 'nb_patterns', 'duration', 'threads', 'connections', 'throughput', 'latency_avg', 'latency_stdev', 'latency_max', 'requests', 'data_read', 'requests_per_sec', 'transfer_per_sec'])
 
+    # change parameters here to append to performance data.
     matsize = [8 * 2 ** i for i in range(7)]
     pattern_size = [8 * 2 ** i for i in range(7)]  
     pattern_count = [8, 16, 32]
@@ -153,8 +147,7 @@ def main():
     if input("Start the performance analysis? (y/n): ").lower() != 'y':
         return
     
-    max_workers = 1 # sequential execution
-    performance_data = performance_analysis(run_configs, max_workers)
+    performance_data = performance_analysis(run_configs)
     
     new_results = pd.DataFrame(performance_data)
     pd.concat([results, new_results], ignore_index=True).to_csv("performance_data_temp.csv", index=False)
