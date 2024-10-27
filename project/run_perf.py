@@ -8,14 +8,14 @@ def run_command(matsize, patterns_size, nb_patterns, duration, threads, connecti
         f"matsize={matsize}",
         f"patterns_size={patterns_size}",
         f"nb_patterns={nb_patterns}",
-        "./wrk2/wrk",
+        "./../wrk2/wrk",
         "http://localhost:8888/",
         f"-d{duration}s",
         f"-t{threads}",
         f"-c{connections}",
         f"-R{throughput}",
         "-s",
-        "project/wrk_scripts/simple_scenario.lua"
+        "wrk_scripts/simple_scenario.lua"
     ]
 
     try:
