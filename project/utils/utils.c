@@ -123,7 +123,7 @@ void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uin
             transpose_matrix(matrix2, transposed_matrix2, K);
 
             for (uint32_t i = 0; i < K; i++) {
-                for (uint32_t j = 0; j < K; j++) {
+                for (uint32_t j = 0; j < K / 4 * 4; j++) {
                     uint32_t sum0 = 0, sum1 = 0, sum2 = 0, sum3 = 0;
                     for (uint32_t k = 0; k < K; k += 4) {
                         sum0 += matrix1[i * K + k] * transposed_matrix2[j * K + k];
@@ -133,9 +133,15 @@ void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uin
                     }
                     result[i * K + j] = sum0 + sum1 + sum2 + sum3;
                 }
+
+                for (uint32_t j = K / 4 * 4; j < K; j++) {
+                    for (uint32_t k = 0; k < K; k++) {
+                        result[i * K + j] += matrix1[i * K + k] * transposed_matrix2[j * K + k];
+                    }
+                }
             }
 #elif defined(UNROLL)
-            for (uint32_t k = 0; k < K; k += 4) {
+            for (uint32_t k = 0; k < K / 4 * 4; k += 4) {
 #if defined(CACHE_AWARE)
                 result[i * K + j] += matrix1[i * K + k] * matrix2[k * K + j];
                 result[i * K + j] += matrix1[i * K + k + 1] * matrix2[(k + 1) * K + j];
@@ -148,6 +154,15 @@ void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uin
                 result[i * K + j] += matrix1[i * K + k + 3] * matrix2[(k + 3) * K + j];
 #endif
             }
+
+            for (uint32_t k = K / 4 * 4; k < K; k++) {
+#if defined(CACHE_AWARE)
+                result[i * K + j] += matrix1[i * K + k] * matrix2[k * K + j];
+#else
+                result[i * K + j] += matrix1[i * K + k] * matrix2[k * K + j];
+#endif
+            }
+
 #elif defined(CACHE_AWARE)
             for (uint32_t k = 0; k < K; k++) {
                 result[i * K + j] += matrix1[i * K + j] * matrix2[j * K + k];
