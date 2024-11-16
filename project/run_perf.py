@@ -109,15 +109,15 @@ def performance_analysis(runs):
 def main():
     # check if the file exists, if it does, ignore runs for which the results already exist
     try:
-        results = pd.read_csv("performance_data.csv")
+        results = pd.read_csv("performance_data12.csv")
     except FileNotFoundError:
         results = pd.DataFrame(columns=['matsize', 'patterns_size', 'nb_patterns', 'duration', 'threads', 'connections', 'throughput', 'latency_avg', 'latency_stdev', 'latency_max', 'requests', 'data_read', 'requests_per_sec', 'transfer_per_sec'])
 
     # change parameters here to append to performance data.
-    matsize = [8]
-    pattern_size = [8]  
-    pattern_count = [1]
-    benchmark_duration = [10]
+    matsize = [8,32,64,512,1028,2048]
+    pattern_size = [1,4,8,32,64,128,512]  
+    pattern_count = [1,2,4,8,16,32,64,128]
+    benchmark_duration = [10,20]
     thread_count = [1]
     http_connections = [1000]
     throughput = [1000]

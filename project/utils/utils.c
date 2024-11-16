@@ -35,6 +35,43 @@ size_t extract_number(char *str, char delim, char* end, uint32_t* number) {
     return number_len;
 }
 
+
+void get_positions(uint32_t *mat1, uint32_t *mat2, uint32_t *patterns, char *request, size_t request_len) {
+    int count = 0;
+    //fix compile flag :)
+    (void)mat1;
+    (void)mat2;
+    (void)patterns;
+    for (size_t i = 0; i < request_len; i++) {
+        if (request[i] == ',') {
+            void* temp = &request[i + 1];
+            switch (count) {
+                case 0:
+                    mat1 = temp;
+                    break;
+                case 1:
+                    mat2 = temp;
+                    break;
+                case 2:
+                    patterns = temp;
+                    break;
+            }
+            count++;
+        }
+        if (count == 3)
+            break;
+    }
+}
+
+void test_parse_request(struct parsed_request *parsed, char *request, size_t request_len) {
+    uint32_t matrixSideSize, nbPatterns, sizeOfEachPattern;
+
+    sscanf(request, "%u,%u,%u", &matrixSideSize, &nbPatterns, &sizeOfEachPattern);
+    get_positions(parsed->mat1, parsed->mat2, parsed->patterns, request, request_len);
+    parsed->nb_patterns = nbPatterns;
+    parsed->patterns_size = sizeOfEachPattern;
+}
+
 /**
  * @brief Parses a raw request into a nice struct
  *
@@ -251,7 +288,7 @@ char *complete_algorithm(char *raw_request, uint32_t raw_request_len, char *res_
     }
     
     struct parsed_request parsed;
-    parse_request(&parsed, raw_request, raw_request_len);
+    test_parse_request(&parsed, raw_request, raw_request_len);
 
     multiply_matrix(parsed.mat1, parsed.mat2, intermediary_matrix, parsed.matrices_size);
 
