@@ -165,10 +165,10 @@ void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uin
 #elif defined(UNROLL)
             for (uint32_t k = 0; k < K / 4 * 4; k += 4) {
 #if defined(CACHE_AWARE)
-                result[i * K + j] += matrix1[i * K + k] * matrix2[k * K + j];
-                result[i * K + j] += matrix1[i * K + k + 1] * matrix2[(k + 1) * K + j];
-                result[i * K + j] += matrix1[i * K + k + 2] * matrix2[(k + 2) * K + j];
-                result[i * K + j] += matrix1[i * K + k + 3] * matrix2[(k + 3) * K + j];
+                result[i * K + k] += matrix1[i * K + j] * matrix2[j * K + k];
+                result[i * K + k + 1] += matrix1[i * K + j] * matrix2[j * K + k + 1];
+                result[i * K + k + 2] += matrix1[i * K + j] * matrix2[j * K + k + 2];
+                result[i * K + k + 3] += matrix1[i * K + j] * matrix2[j * K + k + 3];
 #else
                 result[i * K + j] += matrix1[i * K + k] * matrix2[k * K + j];
                 result[i * K + j] += matrix1[i * K + k + 1] * matrix2[(k + 1) * K + j];
@@ -179,7 +179,7 @@ void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uin
 
             for (uint32_t k = K / 4 * 4; k < K; k++) {
 #if defined(CACHE_AWARE)
-                result[i * K + j] += matrix1[i * K + k] * matrix2[k * K + j];
+                result[i * K + k] += matrix1[i * K + j] * matrix2[j * K + k];
 #else
                 result[i * K + j] += matrix1[i * K + k] * matrix2[k * K + j];
 #endif
