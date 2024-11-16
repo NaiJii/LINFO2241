@@ -25,7 +25,6 @@ uint32_t extract_number(char **str) {
     return number;
 }
 
-
 void get_positions(uint32_t *mat1, uint32_t *mat2, uint32_t *patterns, char *request, size_t request_len) {
     int count = 0;
     //fix compile flag :)
@@ -97,27 +96,13 @@ void parse_request(struct parsed_request *parsed, char *request, size_t request_
     if (left_len < text_len * 2 + parsed->nb_patterns * parsed->patterns_size)
         return;
     
-    char temp[text_len];
     parsed->mat1 = (uint32_t*)request;
-    strncpy(temp, request, text_len);
-    PRINTF("mat1: %s\n", temp);
-    for (uint32_t i = 0; i < text_len / 4; i++) {
-        //PRINTF("%u ", parsed->mat1[i]);
-    }
     request += text_len;
-    PRINTF("request delta: %lu\n", request - r);
     
     parsed->mat2 = (uint32_t*)request;
-    strncpy(temp, request, text_len);
-    PRINTF("mat2: %s\n", temp);
     request += text_len;
-    PRINTF("request delta: %lu\n", request - r);
     
     parsed->patterns = (uint32_t*)request;
-    for (uint32_t i = 0; i < parsed->nb_patterns; i++) {
-        strncpy(temp, request + i * parsed->patterns_size, parsed->patterns_size);
-        //PRINTF("patterns: %s\n", temp);
-    }
 
     //request += parsed->nb_patterns * parsed->patterns_size;
     //printf("request delta: %lu\n", request - r);
@@ -202,7 +187,7 @@ void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uin
 
 #elif defined(CACHE_AWARE)
             for (uint32_t k = 0; k < K; k++) {
-                result[i * K + j] += matrix1[i * K + j] * matrix2[j * K + k];
+                result[i * K + k] += matrix1[i * K + j] * matrix2[j * K + k];
             }
 #else       // Default
             for (uint32_t k = 0; k < K; k++) {

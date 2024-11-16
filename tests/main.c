@@ -9,31 +9,21 @@
 
 void test_extract_number() {
     char str[] = "123,456,789";
-    char delim = ',';
-    char* end = str + sizeof(str);
     uint32_t number;
-    size_t res = extract_number(str, delim, end, &number);
-    if (res != 3) {
-        printf("Error: extract_number returned %lu, expected 3\n", res);
-        return;
-    }
+    number = extract_number(&str);
     if (number != 123) {
         printf("Error: extract_number returned %d, expected 123\n", number);
         return;
     }
 
-    res = extract_number(str + 4, delim, end, &number);
-    if (res != 3) {
-        printf("Error: extract_number returned %lu, expected 3\n", res);
-        return;
-    }
+    number = extract_number(&str);
     if (number != 456) {
         printf("Error: extract_number returned %d, expected 456\n", number);
         return;
     }
 
     printf("extract_number passed\n");
-}//size_t extract_number(char *str, char delim, char* end, uint32_t* number);
+}
 
 void test_res_to_string() {
     uint32_t res[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -108,7 +98,7 @@ int main() {
     test_res_to_string();
     test_multiply_matrix();
     test_test_patterns();
-    #endif
+#endif
     test_matrix_mult();
 
     return 0;
