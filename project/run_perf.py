@@ -19,7 +19,7 @@ def run_command(matsize, patterns_size, nb_patterns, duration, threads, connecti
     ]
 
     try:
-        result = subprocess.run(command, capture_output=True, text=True, check=True)
+        result = subprocess.run(command, capture_output=True, text=True, check=True, shell=True)
         output = result.stdout
         return parse_output(output)
 
