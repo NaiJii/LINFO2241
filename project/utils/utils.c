@@ -15,24 +15,14 @@ void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uin
 void test_patterns(uint32_t *matrix, uint32_t matrix_size, uint32_t *patterns, uint32_t pattern_size, uint32_t nb_patterns, uint32_t *res);
 void res_to_string(char *str, uint32_t *res, uint32_t res_size);
 char *complete_algorithm(char *raw_request, uint32_t raw_request_len, char *res_str, uint32_t *res_uint, uint32_t *intermediary_matrix, uint32_t *resp_len);
-size_t extract_number(char *str, char delim, char* end, uint32_t* number);
+uint32_t extract_number(char **str);
 
-size_t extract_number(char *str, char delim, char* end, uint32_t* number) {
-    char* it = str;
-    while (*it != delim) {
-        it++;
-        if (it == end) {
-            return -1;
-        }
+uint32_t extract_number(char **str) {
+    uint32_t number = strtoul(*str, (char**)str, 10);
+    if (**str == ',') {
+        (*str)++;  
     }
-
-    size_t number_len = it - str;
-    char number_str[number_len + 1];
-    strncpy(number_str, str, number_len);
-    number_str[number_len] = '\0';
-
-    *number = atoi(number_str);
-    return number_len;
+    return number;
 }
 
 
@@ -88,13 +78,13 @@ void parse_request(struct parsed_request *parsed, char *request, size_t request_
 
     PRINTF("=== Parsing request ===\n", 0);
     PRINTF("request: %s\n", request);
-    request += extract_number(request, ',', request + request_len, &parsed->matrices_size) + 1;
+    parsed->matrices_size = extract_number(&request);
     PRINTF("matrices_size: %d\n", parsed->matrices_size);
     PRINTF("request delta: %lu\n", request - r);
-    request += extract_number(request, ',', request + request_len, &parsed->nb_patterns) + 1;
+    parsed->nb_patterns = extract_number(&request);
     PRINTF("nb_patterns: %d\n", parsed->nb_patterns);
     PRINTF("request delta: %lu\n", request - r);
-    request += extract_number(request, ',', request + request_len, &parsed->patterns_size) + 1;
+    parsed->patterns_size = extract_number(&request);
     PRINTF("patterns_size: %d\n", parsed->patterns_size);
     PRINTF("request delta: %lu\n", request - r);
 
@@ -159,8 +149,6 @@ void transpose_matrix(const uint32_t *matrix, uint32_t *transposed, uint32_t K) 
  * @note `result` should be modified to the result of the multiplication of the matrices
 */
 void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uint32_t K) {
-    //printf("mat1: %p\n", (void*)matrix1);
-    //printf("mat2: %p\n", (void*)matrix2);
     // i is the row index
     // j is the column index
     // k is the index of the element in the row/column
