@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
+#include <unistd.h>
+#include <time.h>
+#include <sys/resource.h> 
 #include "../project/utils/utils.h"
 
 void test_extract_number() {
@@ -69,13 +73,43 @@ void test_test_patterns() {
     printf("test_patterns passed\n");
 }
 
-int main() {
-    printf("Return of foo is %d\n", foo());
+void test_matrix_mult() {  
+    uint32_t K = 5120;  // Example size
+    uint32_t *matrix1 = (uint32_t *)malloc(K * K * sizeof(uint32_t));
+    uint32_t *matrix2 = (uint32_t *)malloc(K * K * sizeof(uint32_t));
+    uint32_t *result = (uint32_t *)malloc(K * K * sizeof(uint32_t));
 
+    // Initialize matrix1 and matrix2 with some values
+    srand((unsigned int)time(NULL));  // Seed the random number generator
+    for (uint32_t i = 0; i < K * K; i++) {
+        matrix1[i] = i % 100;  // Example values
+        matrix2[i] = (i * 2) % 100;
+    }
+
+    struct timespec start, end;
+    clock_gettime(CLOCK_MONOTONIC, &start);  // Start time
+
+    // Multiply matrices
+    multiply_matrix(matrix1, matrix2, result, K);
+
+    clock_gettime(CLOCK_MONOTONIC, &end);  // Start time
+    double elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+    printf("Matrix multiplication took %f seconds\n", elapsed);
+
+    // Free allocated memory
+    free(matrix1);
+    free(matrix2);
+    free(result);
+}
+
+int main() {
+# if 0
     test_extract_number();
     test_res_to_string();
     test_multiply_matrix();
     test_test_patterns();
+    #endif
+    test_matrix_mult();
 
     return 0;
 }

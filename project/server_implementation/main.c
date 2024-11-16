@@ -33,7 +33,9 @@ int is_service_on = 0;
 
 static char *body_processing(ngx_link_func_ctx_t *ctx, char *body, size_t body_len,
                              size_t *resp_len) {
-
+#if NGX
+    ngx_ctx = ctx;
+#endif
     struct parsed_request parsed;
 
     parse_request(&parsed, body, body_len);

@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define BLOCK_SIZE 64
 
 void parse_request(struct parsed_request *parsed, char *request, size_t request_len);
 void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uint32_t K);
@@ -48,7 +49,7 @@ void parse_request(struct parsed_request *parsed, char *request, size_t request_
     //      MatrixSideSize,NbPatterns,SizeOfEachPattern,Text..NetworkLayer..Pattern1..PatternN
     // e.g. 2,2,1,ThisIsAnExample!SomeNetworkLayerExamJump
 
-    PRINTF("=== Parsing request ===\n"text_len);
+    PRINTF("=== Parsing request ===\n", 0);
     PRINTF("request: %s\n", request);
     request += extract_number(request, ',', request + request_len, &parsed->matrices_size) + 1;
     PRINTF("matrices_size: %d\n", parsed->matrices_size);
@@ -70,7 +71,6 @@ void parse_request(struct parsed_request *parsed, char *request, size_t request_
         return;
     
     char temp[text_len];
-    
     parsed->mat1 = (uint32_t*)request;
     strncpy(temp, request, text_len);
     PRINTF("mat1: %s\n", temp);
@@ -99,7 +99,15 @@ void parse_request(struct parsed_request *parsed, char *request, size_t request_
     PRINTF("mat1: %p\n", (void*)parsed->mat1);
     PRINTF("mat2: %p\n", (void*)parsed->mat2);
     PRINTF("patterns: %p\n", (void*)parsed->patterns);
-    PRINTF("=== End of parsing ===\n");
+    PRINTF("=== End of parsing ===\n", 0);
+}
+
+void transpose_matrix(const uint32_t *matrix, uint32_t *transposed, uint32_t K) {
+    for (uint32_t i = 0; i < K; i++) {
+        for (uint32_t j = 0; j < K; j++) {
+            transposed[j * K + i] = matrix[i * K + j];
+        }
+    }
 }
 
 /**
@@ -119,19 +127,43 @@ void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uin
     // i is the row index
     // j is the column index
     // k is the index of the element in the row/column
+    memset(result, 0, K * K * sizeof(uint32_t));
     for (uint32_t i = 0; i < K; i++) {
         for (uint32_t j = 0; j < K; j++) {
-            result[i * K + j] = 0;  
-            for (uint32_t k = 0; k < K; k++) {
-                result[i * K + j] += matrix1[i * K + k] * matrix2[k * K + j];
+#if defined(BEST)
+            uint32_t transposed_matrix2[K * K];
+            transpose_matrix(matrix2, transposed_matrix2, K);
+            
+            for (uint32_t i = 0; i < K; i++) {
+                for (uint32_t j = 0; j < K; j++) {
+                    uint32_t sum0 = 0, sum1 = 0, sum2 = 0, sum3 = 0;
+                    for (uint32_t k = 0; k < K; k += 4) {
+                        sum0 += matrix1[i * K + k] * transposed_matrix2[j * K + k];
+                        sum1 += matrix1[i * K + k + 1] * transposed_matrix2[j * K + k + 1];
+                        sum2 += matrix1[i * K + k + 2] * transposed_matrix2[j * K + k + 2];
+                        sum3 += matrix1[i * K + k + 3] * transposed_matrix2[j * K + k + 3];
+                    }
+                    result[i * K + j] = sum0 + sum1 + sum2 + sum3;
+                }
             }
+#elif defined(UNROLL)
+            for (uint32_t k = 0; k < K; k += 4) {
+#if defined(CACHE_AWARE)
+                result[i * K + j] += matrix1[i * K + k] * matrix2[k * K + j];
+                result[i * K + j] += matrix1[i * K + k + 1] * matrix2[(k + 1) * K + j];
+                result[i * K + j] += matrix1[i * K + k + 2] * matrix2[(k + 2) * K + j];
+                result[i * K + j] += matrix1[i * K + k + 3] * matrix2[(k + 3) * K + j];
+#else
+                result[i * K + j] += matrix1[i * K + k] * matrix2[k * K + j];
+                result[i * K + j] += matrix1[i * K + k + 1] * matrix2[(k + 1) * K + j];
+                result[i * K + j] += matrix1[i * K + k + 2] * matrix2[(k + 2) * K + j];
+                result[i * K + j] += matrix1[i * K + k + 3] * matrix2[(k + 3) * K + j];
+#endif
+            }
+#endif
         }
     }
 }
-
-// uint32_t distance(uint32_t a, uint32_t b) {
-//     return (a - b) * (a - b);
-// }
 
 /**
  * @brief Computes a measure of similarity between the patterns and the matrix

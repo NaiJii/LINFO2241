@@ -1,10 +1,11 @@
-P3_FLAGS = -mno-sse2 -mno-avx -mno-avx2 -mno-avx512f -fno-unroll-loops -fno-tree-vectorize -O2
+P3_FLAGS = -mno-sse2 -mno-avx -mno-avx2 -mno-avx512f -fno-unroll-loops -fno-tree-vectorize -O2 
 override CFLAGS+= -ggdb -fPIC -Wextra -Werror -Wall -pedantic $(P3_FLAGS)
 NB_WORKER = 1
 
 CACHE_AWARE_FLAG = $(findstring -DCACHE_AWARE,$(CFLAGS))
 UNROLL_FLAG = $(findstring -DUNROLL,$(CFLAGS))
 BEST_FLAG = $(findstring -DBEST,$(CFLAGS))
+NGX_FLAG = $(findstring -DNGX,$(CFLAGS))
 
 .PHONY: check-flags
 check-flags:
@@ -25,6 +26,12 @@ ifeq ($(BEST_FLAG),-DBEST)
 else
 	@echo "CFLAGS does not contain -DBEST"
 endif
+
+ifeq ($(NGX_FLAG),-DNGX)
+	@echo "CFLAGS contains -DNGX"
+else
+	@echo "CFLAGS does not contain -DNGX"
+endif 
 
 build: main.c ../utils/utils.c check-flags
 	gcc -I../../nginx-link-function/src -I ../utils -c $(CFLAGS) main.c -o build/main.o -lm
@@ -64,4 +71,8 @@ run_gdb: build kill_nginx
 run_valgrind: build kill_nginx
 	echo "Application is running in valgrind mode, this is a handy debug tool..."
 	valgrind ../../nginx/install_debug/sbin/nginx -c ../../project/nginx-conf/project.conf -g "error_log /dev/stdout error; daemon off;";
+
+run_valgrind_leak: build kill_nginx
+	echo "Application is running in valgrind mode, this is a handy debug tool..."
+	valgrind --leak-check=full ../../nginx/install_debug/sbin/nginx -c ../../project/nginx-conf/project.conf -g "error_log /dev/stdout error; daemon off;";
 
