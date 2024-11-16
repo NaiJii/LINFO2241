@@ -37,7 +37,7 @@ void test_patterns(uint32_t *matrix, uint32_t matrix_size, uint32_t *patterns,
                       uint32_t pattern_size, uint32_t nb_patterns, uint32_t *res);
 void res_to_string(char *str, uint32_t *res, uint32_t res_size);
 char *complete_algorithm(char *raw_request, uint32_t raw_request_len, char *res_str, uint32_t *res_uint, uint32_t *intermediary_matrix, uint32_t *resp_len);
-size_t extract_number(char *str, char delim, char* end, uint32_t* number);
+uint32_t extract_number(char **str);
 
 #if NGX
 extern ngx_link_func_ctx_t* ngx_ctx;
