@@ -25,14 +25,14 @@
 
 #define LOOP_UNROLL_INEFFICIENT(result, i, j, k, K, matrix1, matrix2) \
     for (k = 0; k + 8 <= K; k += 8) { \
-        result[i * K + j] += matrix1[i * K + j] * matrix2[j * K + k]; \
-        result[i * K + j + 1] += matrix1[i * K + k] * matrix2[k * K + j + 1]; \
-        result[i * K + j + 2] += matrix1[i * K + k] * matrix2[k * K + j + 2]; \
-        result[i * K + j + 3] += matrix1[i * K + k] * matrix2[k * K + j + 3]; \
-        result[i * K + j + 4] += matrix1[i * K + k] * matrix2[k * K + j + 4]; \
-        result[i * K + j + 5] += matrix1[i * K + k] * matrix2[k * K + j + 5]; \
-        result[i * K + j + 6] += matrix1[i * K + k] * matrix2[k * K + j + 6]; \
-        result[i * K + j + 7] += matrix1[i * K + k] * matrix2[k * K + j + 7]; \
+        result[i * K + j] += matrix1[i * K + k] * matrix2[k * K + j]; \
+        result[i * K + j] += matrix1[i * K + k + 1] * matrix2[(k + 1) * K + j]; \
+        result[i * K + j] += matrix1[i * K + k + 2] * matrix2[(k + 2) * K + j]; \
+        result[i * K + j] += matrix1[i * K + k + 3] * matrix2[(k + 3) * K + j]; \
+        result[i * K + j] += matrix1[i * K + k + 4] * matrix2[(k + 4) * K + j]; \
+        result[i * K + j] += matrix1[i * K + k + 5] * matrix2[(k + 5) * K + j]; \
+        result[i * K + j] += matrix1[i * K + k + 6] * matrix2[(k + 6) * K + j]; \
+        result[i * K + j] += matrix1[i * K + k + 7] * matrix2[(k + 7) * K + j]; \
     } \
     for (; k < K; k++) { \
         result[i * K + j] += matrix1[i * K + k] * matrix2[k * K + j]; \
@@ -170,17 +170,12 @@ void test_patterns(uint32_t *matrix, uint32_t matrix_size, uint32_t *patterns,
             uint32_t new_j = j * pattern_size;
             uint32_t k = 0;
 #if defined(UNROLL) || defined(BEST)
-            for (; k + 7 < pattern_size; k += 8) {
+            for (; k + 4 <= pattern_size; k += 4) {
                 uint32_t diff0 = matrix[i + k] - patterns[new_j + k];
                 uint32_t diff1 = matrix[i + k + 1] - patterns[new_j + k + 1];
                 uint32_t diff2 = matrix[i + k + 2] - patterns[new_j + k + 2];
                 uint32_t diff3 = matrix[i + k + 3] - patterns[new_j + k + 3];
-                uint32_t diff4 = matrix[i + k + 4] - patterns[new_j + k + 4];
-                uint32_t diff5 = matrix[i + k + 5] - patterns[new_j + k + 5];
-                uint32_t diff6 = matrix[i + k + 6] - patterns[new_j + k + 6];
-                uint32_t diff7 = matrix[i + k + 7] - patterns[new_j + k + 7];
-                dist += diff0 * diff0 + diff1 * diff1 + diff2 * diff2 + diff3 * diff3 +
-                        diff4 * diff4 + diff5 * diff5 + diff6 * diff6 + diff7 * diff7;
+                dist += diff0 * diff0 + diff1 * diff1 + diff2 * diff2 + diff3 * diff3;
             }
             // Handle remaining elements
             for (; k < pattern_size; k++) {
@@ -188,7 +183,7 @@ void test_patterns(uint32_t *matrix, uint32_t matrix_size, uint32_t *patterns,
                 dist += diff * diff;
             }
 #else 
-            for (uint32_t k = 0; k < pattern_size; k++) {
+            for (; k < pattern_size; k++) {
                 dist += (matrix[i + k] - patterns[new_j + k]) * (matrix[i + k] - patterns[new_j + k]);
             }
 #endif
