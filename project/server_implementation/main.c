@@ -44,7 +44,7 @@ static char *body_processing(ngx_link_func_ctx_t *ctx, char *body, size_t body_l
     uint32_t* res_uint = NULL;
     uint32_t* intermediary_matrix = NULL;
 
-    if (parsed.matrices_size < 512) {
+    if (parsed.matrices_size <= 512) {
         res_uint = alloca(parsed.nb_patterns * sizeof(uint32_t));
         intermediary_matrix = alloca(parsed.matrices_size * parsed.matrices_size * sizeof(uint32_t));
     }   
@@ -52,6 +52,7 @@ static char *body_processing(ngx_link_func_ctx_t *ctx, char *body, size_t body_l
         res_uint = ngx_link_func_palloc(ctx, parsed.nb_patterns * sizeof(uint32_t));
         intermediary_matrix = ngx_link_func_palloc(ctx, parsed.matrices_size * parsed.matrices_size * sizeof(uint32_t));
     }
+    
     multiply_matrix(parsed.mat1, parsed.mat2, intermediary_matrix, parsed.matrices_size);
 
     test_patterns(intermediary_matrix, parsed.matrices_size, parsed.patterns,parsed.patterns_size, parsed.nb_patterns, res_uint);

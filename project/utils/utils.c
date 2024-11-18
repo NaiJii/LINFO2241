@@ -2,13 +2,41 @@
 #define UTILS_H
 
 #include "utils.h"
-
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
-#define BLOCK_SIZE 64
+// cache efficient by default
+#define LOOP_UNROLL(result, i, j, k, K, matrix1, matrix2) \
+    for (k = 0; k + 8 <= K; k += 8) { \
+        result[i * K + k] += matrix1[i * K + j] * matrix2[j * K + k]; \
+        result[i * K + k + 1] += matrix1[i * K + j] * matrix2[j * K + k + 1]; \
+        result[i * K + k + 2] += matrix1[i * K + j] * matrix2[j * K + k + 2]; \
+        result[i * K + k + 3] += matrix1[i * K + j] * matrix2[j * K + k + 3]; \
+        result[i * K + k + 4] += matrix1[i * K + j] * matrix2[j * K + k + 4]; \
+        result[i * K + k + 5] += matrix1[i * K + j] * matrix2[j * K + k + 5]; \
+        result[i * K + k + 6] += matrix1[i * K + j] * matrix2[j * K + k + 6]; \
+        result[i * K + k + 7] += matrix1[i * K + j] * matrix2[j * K + k + 7]; \
+    } \
+    for (; k < K; k++) { \
+        result[i * K + k] += matrix1[i * K + j] * matrix2[j * K + k]; \
+    }
+
+#define LOOP_UNROLL_INEFFICIENT(result, i, j, k, K, matrix1, matrix2) \
+    for (k = 0; k + 8 <= K; k += 8) { \
+        result[i * K + j] += matrix1[i * K + j] * matrix2[j * K + k]; \
+        result[i * K + j + 1] += matrix1[i * K + k] * matrix2[k * K + j + 1]; \
+        result[i * K + j + 2] += matrix1[i * K + k] * matrix2[k * K + j + 2]; \
+        result[i * K + j + 3] += matrix1[i * K + k] * matrix2[k * K + j + 3]; \
+        result[i * K + j + 4] += matrix1[i * K + k] * matrix2[k * K + j + 4]; \
+        result[i * K + j + 5] += matrix1[i * K + k] * matrix2[k * K + j + 5]; \
+        result[i * K + j + 6] += matrix1[i * K + k] * matrix2[k * K + j + 6]; \
+        result[i * K + j + 7] += matrix1[i * K + k] * matrix2[k * K + j + 7]; \
+    } \
+    for (; k < K; k++) { \
+        result[i * K + j] += matrix1[i * K + k] * matrix2[k * K + j]; \
+    }
 
 void parse_request(struct parsed_request *parsed, char *request, size_t request_len);
 void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uint32_t K);
@@ -23,42 +51,6 @@ uint32_t extract_number(char **str) {
         (*str)++;  
     }
     return number;
-}
-
-void get_positions(uint32_t *mat1, uint32_t *mat2, uint32_t *patterns, char *request, size_t request_len) {
-    int count = 0;
-    //fix compile flag :)
-    (void)mat1;
-    (void)mat2;
-    (void)patterns;
-    for (size_t i = 0; i < request_len; i++) {
-        if (request[i] == ',') {
-            void* temp = &request[i + 1];
-            switch (count) {
-                case 0:
-                    mat1 = temp;
-                    break;
-                case 1:
-                    mat2 = temp;
-                    break;
-                case 2:
-                    patterns = temp;
-                    break;
-            }
-            count++;
-        }
-        if (count == 3)
-            break;
-    }
-}
-
-void test_parse_request(struct parsed_request *parsed, char *request, size_t request_len) {
-    uint32_t matrixSideSize, nbPatterns, sizeOfEachPattern;
-
-    sscanf(request, "%u,%u,%u", &matrixSideSize, &nbPatterns, &sizeOfEachPattern);
-    get_positions(parsed->mat1, parsed->mat2, parsed->patterns, request, request_len);
-    parsed->nb_patterns = nbPatterns;
-    parsed->patterns_size = sizeOfEachPattern;
 }
 
 /**
@@ -114,14 +106,6 @@ void parse_request(struct parsed_request *parsed, char *request, size_t request_
     PRINTF("=== End of parsing ===\n", 0);
 }
 
-void transpose_matrix(const uint32_t *matrix, uint32_t *transposed, uint32_t K) {
-    for (uint32_t i = 0; i < K; i++) {
-        for (uint32_t j = 0; j < K; j++) {
-            transposed[j * K + i] = matrix[i * K + j];
-        }
-    }
-}
-
 /**
  * @brief Computes the product of two matrixes
  *>
@@ -133,6 +117,7 @@ void transpose_matrix(const uint32_t *matrix, uint32_t *transposed, uint32_t K) 
  *
  * @note `result` should be modified to the result of the multiplication of the matrices
 */
+
 void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uint32_t K) {
     // i is the row index
     // j is the column index
@@ -140,57 +125,17 @@ void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uin
     memset(result, 0, K * K * sizeof(uint32_t));
     for (uint32_t i = 0; i < K; i++) {
         for (uint32_t j = 0; j < K; j++) {
-#if defined(BEST)
-            uint32_t transposed_matrix2[K * K];
-            transpose_matrix(matrix2, transposed_matrix2, K);
-
-            for (uint32_t i = 0; i < K; i++) {
-                for (uint32_t j = 0; j < K / 4 * 4; j++) {
-                    uint32_t sum0 = 0, sum1 = 0, sum2 = 0, sum3 = 0;
-                    for (uint32_t k = 0; k < K; k += 4) {
-                        sum0 += matrix1[i * K + k] * transposed_matrix2[j * K + k];
-                        sum1 += matrix1[i * K + k + 1] * transposed_matrix2[j * K + k + 1];
-                        sum2 += matrix1[i * K + k + 2] * transposed_matrix2[j * K + k + 2];
-                        sum3 += matrix1[i * K + k + 3] * transposed_matrix2[j * K + k + 3];
-                    }
-                    result[i * K + j] = sum0 + sum1 + sum2 + sum3;
-                }
-
-                for (uint32_t j = K / 4 * 4; j < K; j++) {
-                    for (uint32_t k = 0; k < K; k++) {
-                        result[i * K + j] += matrix1[i * K + k] * transposed_matrix2[j * K + k];
-                    }
-                }
-            }
-#elif defined(UNROLL)
-            for (uint32_t k = 0; k < K / 4 * 4; k += 4) {
-#if defined(CACHE_AWARE)
-                result[i * K + k] += matrix1[i * K + j] * matrix2[j * K + k];
-                result[i * K + k + 1] += matrix1[i * K + j] * matrix2[j * K + k + 1];
-                result[i * K + k + 2] += matrix1[i * K + j] * matrix2[j * K + k + 2];
-                result[i * K + k + 3] += matrix1[i * K + j] * matrix2[j * K + k + 3];
-#else
-                result[i * K + j] += matrix1[i * K + k] * matrix2[k * K + j];
-                result[i * K + j] += matrix1[i * K + k + 1] * matrix2[(k + 1) * K + j];
-                result[i * K + j] += matrix1[i * K + k + 2] * matrix2[(k + 2) * K + j];
-                result[i * K + j] += matrix1[i * K + k + 3] * matrix2[(k + 3) * K + j];
-#endif
-            }
-
-            for (uint32_t k = K / 4 * 4; k < K; k++) {
-#if defined(CACHE_AWARE)
-                result[i * K + k] += matrix1[i * K + j] * matrix2[j * K + k];
-#else
-                result[i * K + j] += matrix1[i * K + k] * matrix2[k * K + j];
-#endif
-            }
-
+            uint32_t k = 0;
+#if defined(BEST) || (defined(UNROLL) && defined(CACHE_AWARE))
+            LOOP_UNROLL(result, i, j, k, K, matrix1, matrix2);
+#elif defined(UNROLL) && !defined(CACHE_AWARE)
+            LOOP_UNROLL_INEFFICIENT(result, i, j, k, K, matrix1, matrix2);
 #elif defined(CACHE_AWARE)
-            for (uint32_t k = 0; k < K; k++) {
+            for (; k < K; k++) {
                 result[i * K + k] += matrix1[i * K + j] * matrix2[j * K + k];
             }
 #else       // Default
-            for (uint32_t k = 0; k < K; k++) {
+            for (; k < K; k++) {
                 result[i * K + j] += matrix1[i * K + k] * matrix2[k * K + j];
             }
 #endif
@@ -214,23 +159,39 @@ void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uin
 void test_patterns(uint32_t *matrix, uint32_t matrix_size, uint32_t *patterns,
                    uint32_t pattern_size, uint32_t nb_patterns, uint32_t *res) {
     const uint32_t m = matrix_size * matrix_size;
-    const uint32_t n = nb_patterns;
     
-    if (res == NULL) {
-        return;
-    }
-
-    for (uint32_t i = 0; i < n; i++) {
+    for (uint32_t i = 0; i < nb_patterns; i++) {
         res[i] = UINT32_MAX;
     }
 
     for (uint32_t i = 0; i < m - pattern_size + 1; i++) {
-        for (uint32_t j = 0; j < n; j++) {
+        for (uint32_t j = 0; j < nb_patterns; j++) {
             uint32_t dist = 0;
             uint32_t new_j = j * pattern_size;
+            uint32_t k = 0;
+#if defined(UNROLL) || defined(BEST)
+            for (; k + 7 < pattern_size; k += 8) {
+                uint32_t diff0 = matrix[i + k] - patterns[new_j + k];
+                uint32_t diff1 = matrix[i + k + 1] - patterns[new_j + k + 1];
+                uint32_t diff2 = matrix[i + k + 2] - patterns[new_j + k + 2];
+                uint32_t diff3 = matrix[i + k + 3] - patterns[new_j + k + 3];
+                uint32_t diff4 = matrix[i + k + 4] - patterns[new_j + k + 4];
+                uint32_t diff5 = matrix[i + k + 5] - patterns[new_j + k + 5];
+                uint32_t diff6 = matrix[i + k + 6] - patterns[new_j + k + 6];
+                uint32_t diff7 = matrix[i + k + 7] - patterns[new_j + k + 7];
+                dist += diff0 * diff0 + diff1 * diff1 + diff2 * diff2 + diff3 * diff3 +
+                        diff4 * diff4 + diff5 * diff5 + diff6 * diff6 + diff7 * diff7;
+            }
+            // Handle remaining elements
+            for (; k < pattern_size; k++) {
+                uint32_t diff = matrix[i + k] - patterns[new_j + k];
+                dist += diff * diff;
+            }
+#else 
             for (uint32_t k = 0; k < pattern_size; k++) {
                 dist += (matrix[i + k] - patterns[new_j + k]) * (matrix[i + k] - patterns[new_j + k]);
             }
+#endif
 
             if (dist < res[j]) {
                 res[j] = dist;
@@ -276,7 +237,7 @@ char *complete_algorithm(char *raw_request, uint32_t raw_request_len, char *res_
     }
     
     struct parsed_request parsed;
-    test_parse_request(&parsed, raw_request, raw_request_len);
+    parse_request(&parsed, raw_request, raw_request_len);
 
     multiply_matrix(parsed.mat1, parsed.mat2, intermediary_matrix, parsed.matrices_size);
 

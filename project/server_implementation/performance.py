@@ -1,5 +1,8 @@
 import subprocess
 import re
+import time
+import os
+import signal
 import pandas as pd
 
 def run_command(matsize, patterns_size, nb_patterns, duration, threads, connections, throughput):
@@ -8,14 +11,39 @@ def run_command(matsize, patterns_size, nb_patterns, duration, threads, connecti
         f"matsize={matsize}",
         f"patterns_size={patterns_size}",
         f"nb_patterns={nb_patterns}",
-        "../../wrk2/wrk",
+        "./../wrk2/wrk",
         "http://localhost:8888/",
         f"-d{duration}s",
         f"-t{threads}",
         f"-c{connections}",
         f"-R{throughput}",
         "-s",
-        "../wrk_scripts/simple_scenario.lua"
+        "wrk_scripts/simple_scenario.lua"
+    ]
+
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, check=True, shell=True)
+        output = result.stdout
+        return parse_output(output)
+
+    except subprocess.CalledProcessError as e:
+        print("Error executing command:", e)
+        return None
+    
+def run_perf():
+    command = [
+        "perf",
+        "stat",
+        "-e",
+        "cache-misses,cache-references",
+        "./../wrk2/wrk",
+        "http://localhost:8888/",
+        "-d30s",
+        "-t2",
+        "-c100",
+        "-R -1",
+        "-s",
+        "wrk_scripts/simple_scenario.lua"
     ]
 
     try:
@@ -80,7 +108,8 @@ Transfer/sec:     19.52KB
 def performance_analysis(runs):
     all_results = []
     for run in runs:
-        matsize, patterns_size, nb_patterns, duration, threads, connections, throughput = run
+        # matsize, patterns_size, nb_patterns, duration, threads, connections, throughput, flags
+        matsize, patterns_size, nb_patterns, duration, threads, connections, throughput, flags = run
         try:
             result = run_command(*run)
             if result:
@@ -92,55 +121,47 @@ def performance_analysis(runs):
                     'threads': threads,
                     'connections': connections,
                     'throughput': throughput,
-                    'latency_avg': result.get('latency_avg', 0),
-                    'latency_stdev': result.get('latency_stdev', 0),
-                    'latency_max': result.get('latency_max', 0),
+                    'flags': flags,
                     'requests': result.get('requests', 0),
                     'data_read': result.get('data_read', 0),
                     'requests_per_sec': result.get('requests_per_sec', 0),
                     'transfer_per_sec': result.get('transfer_per_sec', 0),
                 })
-                print(f"[{len(all_results) / len(runs) * 100:.2f}%] matsize={matsize}, patterns_size={patterns_size}, nb_patterns={nb_patterns}, d={duration}s, t={threads}, c={connections}, R={throughput}: {result}")
-                # print(f"Results: {result} [{len(all_results) / len(runs) * 100:.2f}% complete]")
+                print(f"[{len(all_results) / len(runs) * 100:.2f}%] matsize={matsize}, patterns_size={patterns_size}, nb_patterns={nb_patterns}, d={duration}s, t={threads}, c={connections}, R={throughput}, f={flags}: {result}")
         except Exception as e:
-            print(f"Run with matsize={matsize}, patterns_size={patterns_size}, nb_patterns={nb_patterns}, duration={duration}, threads={threads}, connections={connections}, throughput={throughput} failed with exception: {e}")
+            print(f"Run with matsize={matsize}, patterns_size={patterns_size}, nb_patterns={nb_patterns}, duration={duration}, threads={threads}, connections={connections}, throughput={throughput}, f={flags} failed with exception: {e}")
     return all_results
 
 def main():
     # check if the file exists, if it does, ignore runs for which the results already exist
     try:
-        results = pd.read_csv("performance_data12.csv")
+        results = pd.read_csv("performance_data123.csv")
     except FileNotFoundError:
-        results = pd.DataFrame(columns=['matsize', 'patterns_size', 'nb_patterns', 'duration', 'threads', 'connections', 'throughput', 'latency_avg', 'latency_stdev', 'latency_max', 'requests', 'data_read', 'requests_per_sec', 'transfer_per_sec'])
+        results = pd.DataFrame(columns=['matsize', 'patterns_size', 'nb_patterns', 'throughput', 'flags', 'requests', 'requests_per_sec', 'transfer_per_sec'])
 
-    # change parameters here to append to performance data.
-    matsize = [8,32,64,512,1028,2048]
-    pattern_size = [1,4,8,32,64,128,512]  
-    pattern_count = [1,2,4,8,16,32,64,128]
-    benchmark_duration = [10,20]
-    thread_count = [1]
-    http_connections = [1000]
-    throughput = [1000]
-    
+    flags = ["-DCACHE_AWARE", "-DUNROLL", "-DBEST", "-DCACHE_AWARE -DUNROLL"]
     run_configs = []
-    for m in matsize:
-        for p in pattern_size:
-            for n in pattern_count:
-                for d in benchmark_duration:
-                    for t in thread_count:
-                        for c in http_connections:
-                            for tp in throughput:
-                                run_configs.append((m, p, n, d, t, c, tp))
-                                
+    for flag in flags:
+        # matsize, patterns_size, nb_patterns, duration, threads, connections, throughput, flags
+        # matsize 64, 512
+        run_configs.append((64, 4, 1, 30, 2, 100, -1, flag))
+        run_configs.append((512, 4, 1, 30, 2, 100, -1, flag))
+        # patterns_size 32, 128
+        run_configs.append((64, 32, 16, 30, 2, 100, -1, flag))
+        run_configs.append((64, 128, 16, 30, 2, 100, -1, flag))
+        # nb_patterns 8, 128
+        run_configs.append((64, 32, 8, 30, 2, 100, -1, flag))
+        run_configs.append((64, 32, 128, 30, 2, 100, -1, flag))
+
     # matrix size ** 2 >= pattern size 
     run_configs = [run for run in run_configs if run[0] ** 2 >= run[1]]
     
     # thread count <= http connections
-    run_configs = [run for run in run_configs if run[4] <= run[5]]
+    # run_configs = [run for run in run_configs if run[4] <= run[5]]
     
-    existing_runs = results[['matsize', 'patterns_size', 'nb_patterns', 'duration', 'threads', 'connections', 'throughput']].apply(tuple, axis=1).tolist()
+    #existing_runs = results[['matsize', 'patterns_size', 'nb_patterns', 'duration', 'threads', 'connections', 'throughput']].apply(tuple, axis=1).tolist()
 
-    run_configs = [run for run in run_configs if run not in existing_runs]
+    #run_configs = [run for run in run_configs if run not in existing_runs]
 
     print(f"Total number of runs: {len(run_configs)}")
     

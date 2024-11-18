@@ -1,0 +1,14 @@
+# started on Mon Nov 18 17:23:07 2024
+
+
+ Performance counter stats for process id '39933':
+
+     <not counted>      cache-misses                                                          
+     <not counted>      cache-references                                                      
+
+       5.005274125 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
