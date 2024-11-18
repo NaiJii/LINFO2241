@@ -1,14 +1,14 @@
-# started on Mon Nov 18 17:23:07 2024
+# started on Mon Nov 18 18:08:09 2024
 
 
- Performance counter stats for process id '39933':
+ Performance counter stats for 'make -B run_release CFLAGS+=-DCACHE_AWARE -DUNROLL':
 
-     <not counted>      cache-misses                                                          
-     <not counted>      cache-references                                                      
+         8,462,737      cache-misses                     #   28.43% of all cache refs         
+        29,764,496      cache-references                                                      
 
-       5.005274125 seconds time elapsed
+      30.116796191 seconds time elapsed
 
-Some events weren't counted. Try disabling the NMI watchdog:
-	echo 0 > /proc/sys/kernel/nmi_watchdog
-	perf stat ...
-	echo 1 > /proc/sys/kernel/nmi_watchdog
+       0.392206000 seconds user
+       0.109030000 seconds sys
+
+

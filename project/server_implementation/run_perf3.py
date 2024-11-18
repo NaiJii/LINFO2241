@@ -46,7 +46,7 @@ def generate_make_config():
     flags = ["-DUNROLL", "-DCACHE_AWARE", "-DBEST", "-DCACHE_AWARE -DUNROLL"]
     cmds = []
     for flag in flags:
-        cmds.append(f"make run_release CFLAGS+='{flag}'")
+        cmds.append(f"perf stat --timeout 30100 -o output.txt -e cache-misses,cache-references make -B run_release CFLAGS+='{flag}'")
     return cmds
 
 def run_wrk(cmd):
@@ -55,10 +55,7 @@ def run_wrk(cmd):
 
 def run_make(cmd):
     print(f"[INFO] Running make command: {cmd}")
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    out, err = p.communicate()
-    # pid 
-    return p
+    return subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True) 
 
 def parse_wrk(output):
     """
@@ -109,8 +106,6 @@ Transfer/sec:     19.52KB
     if requests_sec_match:
         parsed_values['requests_per_sec'] = float(requests_sec_match.group(1))
     return parsed_values
-
-def run_perf(cmd):
     print(f"[INFO] Running perf command: {cmd}")
     return subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
@@ -135,18 +130,16 @@ def main():
         # Attach perf to the server process for each make configuration and save the perf output to a file.
         # for cache misses and cache references, use the following command: perf stat -e cache-misses,cache-references -o perf_output.txt -p <pid>
         results = []
+        os.system("touch output.txt")
         for make_cmd, wrk_cmd in zip(make_cfgs, wrk_cfgs):
-            make_process = run_make(make_cmd)  
-            time.sleep(5)
+            # touch file
+            run_make(make_cmd)  
+            time.sleep(1)
 
-            # create the output file
-            # os.system("touch perf_output.txt")
-            # perf for 30s
-            d = duration * 1000 + 500 # 500 extra ms
-            perf_cmd = f"sudo perf record --timeout {d} -o perf_output.txt -e cache-misses,cache-references -p {make_process.pid}"
-            perf_process = run_perf(perf_cmd)
+            print("[INFO] Server started.")
+
             wrk = run_wrk(wrk_cmd)
-
+            print("[INFO] WRK started.")
             wrk.wait()
 
             wrk_output, _ = wrk.communicate()
