@@ -46,7 +46,7 @@ def generate_make_config():
     flags = ["-DUNROLL", "-DCACHE_AWARE", "-DBEST", "-DCACHE_AWARE -DUNROLL"]
     cmds = []
     for flag in flags:
-        cmds.append(f"perf stat --timeout 30100 -o output.txt -e cache-misses,cache-references make -B run_release CFLAGS+='{flag}'")
+        cmds.append(f"perf stat --timeout 30010 -o output.txt -e cache-misses,cache-references make -B run_release CFLAGS+='{flag}'")
     return cmds
 
 def run_wrk(cmd):
@@ -133,22 +133,16 @@ def main():
         os.system("touch output.txt")
         for make_cmd, wrk_cmd in zip(make_cfgs, wrk_cfgs):
             # touch file
-            run_make(make_cmd)  
+            server = run_make(make_cmd)  
             time.sleep(1)
 
-            print("[INFO] Server started.")
-
             wrk = run_wrk(wrk_cmd)
-            print("[INFO] WRK started.")
             wrk.wait()
-
             wrk_output, _ = wrk.communicate()
             wrk_results = parse_wrk(wrk_output.decode())
             print(f"[INFO] WRK results: {wrk_results}")
 
-            #time.sleep(d)
-
-            with open("perf_output.txt") as f:
+            with open("output.txt") as f:
                 lines = f.readlines()
                 print(f"[INFO] Perf output: {lines}")
                 #cache_misses = int(lines[0].split()[0])
