@@ -1,11 +1,11 @@
-P3_FLAGS = -mno-sse2 -mno-avx -mno-avx2 -mno-avx512f -fno-unroll-loops -fno-tree-vectorize -O2 
+P3_FLAGS = -mno-sse2 -mno-avx -mno-avx2 -mno-avx512f -fno-unroll-loops -fno-tree-vectorize -O2 -fopenmp -DOMP_NUM_THREADS=8
 override CFLAGS+= -ggdb -fPIC -Wextra -Werror -Wall -pedantic $(P3_FLAGS)
 NB_WORKER = 1
 
 CACHE_AWARE_FLAG = $(findstring -DCACHE_AWARE,$(CFLAGS))
 UNROLL_FLAG = $(findstring -DUNROLL,$(CFLAGS))
 BEST_FLAG = $(findstring -DBEST,$(CFLAGS))
-NGX_FLAG = $(findstring -DNGX,$(CFLAGS))
+OPENMP_FLAG = $(findstring -fopenmp,$(CFLAGS))
 
 .PHONY: check-flags
 check-flags:
@@ -27,11 +27,11 @@ else
 	@echo "CFLAGS does not contain -DBEST"
 endif
 
-ifeq ($(NGX_FLAG),-DNGX)
-	@echo "CFLAGS contains -DNGX"
+ifeq ($(OPENMP_FLAG),-fopenmp)
+	@echo "CFLAGS contains -fopenmp"
 else
-	@echo "CFLAGS does not contain -DNGX"
-endif 
+	@echo "CFLAGS does not contain -fopenmp"
+endif
 
 build: main.c ../utils/utils.c check-flags
 	gcc -I../../nginx-link-function/src -I ../utils -c $(CFLAGS) main.c -o build/main.o -lm

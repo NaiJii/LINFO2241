@@ -5,6 +5,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <math.h>
+#include <omp.h>
 
 #ifdef DEBUG
 #define PRINTF(str, ...) printf(str, ##__VA_ARGS__)

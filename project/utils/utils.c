@@ -3,7 +3,7 @@
 
 #include "utils.h"
 
-#define MULTITHREAD
+//#define MULTITHREAD
 // Blocking size for matrix multiplication
 // BLOCK_SIZE of less than 8 will not work because in our matrix multiplication thread, we unroll the loop by 8.
 // This could be fixed by unrolling less
@@ -108,6 +108,8 @@ void parse_request(struct parsed_request *parsed, char *request, size_t request_
 }
 
 void *multiply_matrix_thread(void *arg) {
+
+
     struct thread_data *data = (struct thread_data *)arg;
     uint32_t *matrix1 = data->matrix1;
     uint32_t *matrix2 = data->matrix2;
@@ -126,7 +128,7 @@ void *multiply_matrix_thread(void *arg) {
             uint32_t *r_ptr = &result[i * K + jBlock];
 
             for (uint32_t j = 0; j < BLOCK_SIZE; j += 8) {
-                if (jBlock + j + 7 < K) {
+                if (jBlock + j + 8 < K) {
                     // Prefetch next block of matrix2
                     __builtin_prefetch(&b_ptr[j + 8], 0, 1);
                     
@@ -154,6 +156,37 @@ void *multiply_matrix_thread(void *arg) {
     pthread_exit(NULL);
 }
 
+/*
+void *multiply_matrix_thread(void* arg) {
+    thread_data2* data = (thread_data2*)arg;
+    uint32_t* matrix1 = data->matrix1;
+    uint32_t* matrix2 = data->matrix2;
+    uint32_t* result = data->result;
+    uint32_t K = data->K;
+    uint32_t i = data->i;
+    uint32_t k = data->k;
+    uint32_t j = data->j;
+
+    for (; i < K; i++) {
+        for (; j < K; j++) {
+            uint32_t k = 0;
+#if defined(UNROLL) && defined(CACHE_AWARE)
+            LOOP_UNROLL(result, i, j, k, K, matrix1, matrix2);
+#elif defined(UNROLL) && !defined(CACHE_AWARE)
+            LOOP_UNROLL_INEFFICIENT(result, i, j, k, K, matrix1, matrix2);
+#elif defined(CACHE_AWARE)
+            for (; k < K; k++) {
+                result[i * K + k] += matrix1[i * K + j] * matrix2[j * K + k];
+            }
+#else       // Default
+            for (; k < K; k++) {
+                result[i * K + j] += matrix1[i * K + k] * matrix2[k * K + j];
+            }
+#endif
+        }
+    }
+}*/
+
 /**
  * @brief Computes the product of two matrixes
  *>
@@ -170,7 +203,7 @@ void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uin
     // j is the column index
     // k is the index of the element in the row/column
     memset(result, 0, K * K * sizeof(uint32_t));
-#if defined(MULTITHREAD) 
+#if defined(BEST) && defined(MULTITHREAD) 
     uint32_t num_blocks = ( K + BLOCK_SIZE - 1 ) / BLOCK_SIZE; 
     PRINTF("num_blocks: %d = (%d + %d - 1) / %d\n", num_blocks, K, BLOCK_SIZE, BLOCK_SIZE);
     uint32_t num_threads = num_blocks * num_blocks; 
@@ -205,8 +238,8 @@ void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uin
     for (uint32_t i = 0; i < num_threads; i++) {
         pthread_join(threads[i], NULL);
     }
-#else 
-#if defined (BEST)
+#elif defined (BEST)
+    #pragma omp parallel for 
     for (uint32_t iBlock = 0; iBlock < K; iBlock += BLOCK_SIZE) {
         for (uint32_t kBlock = 0; kBlock < K; kBlock += BLOCK_SIZE) { 
             for (uint32_t jBlock = 0; jBlock < K; jBlock += BLOCK_SIZE) {
@@ -260,7 +293,6 @@ void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uin
 #endif
         }
     }
-#endif
 #endif
 }
 
