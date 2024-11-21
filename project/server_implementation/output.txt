@@ -1,14 +1,14 @@
-# started on Mon Nov 18 18:22:44 2024
+# started on Tue Nov 19 21:36:34 2024
 
 
- Performance counter stats for 'make -B run_release CFLAGS+=-DCACHE_AWARE -DUNROLL':
+ Performance counter stats for 'make -B run_release CFLAGS+=-DBEST':
 
-         7,670,803      cache-misses                     #   28.09% of all cache refs         
-        27,303,891      cache-references                                                      
+         2.678.180      cache-misses              #   10,174 % of all cache refs    
+        26.323.435      cache-references                                            
 
-      30.041375251 seconds time elapsed
+       1,223010310 seconds time elapsed
 
-       0.357900000 seconds user
-       0.094594000 seconds sys
+       0,000000000 seconds user
+       0,000000000 seconds sys
 
 

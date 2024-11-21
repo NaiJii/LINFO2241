@@ -4,6 +4,7 @@ import subprocess
 import time
 import pandas as pd
 import re
+import csv
 
 duration = 30
 
@@ -142,18 +143,30 @@ def main():
             wrk_results = parse_wrk(wrk_output.decode())
             print(f"[INFO] WRK results: {wrk_results}")
 
+            cache_misses = ""
+            cache_references = ""
+            time_elapsed = ""
+
             with open("output.txt") as f:
                 lines = f.readlines()
-                print(f"[INFO] Perf output: {lines}")
-                #cache_misses = int(lines[0].split()[0])
-                #cache_references = int(lines[1].split()[0])
-                #print(f"[INFO] Cache misses: {cache_misses}, cache references: {cache_references}")
+                temp = ""
+                for line in lines:
+                    temp += line
+                
+                cache_misses = temp.replace(" ", "").split('cache-misses')[0].split('\n')[-1].replace('.','')
+                cache_references = temp.replace(" ", "").split('cache-references')[0].split('\n')[-1].replace('.','')
+                time_elapsed = temp.replace(" ", "").split('secondstimeelapsed')[0].split('\n')[-1].replace('.','')
 
             #cache_misses, cache_references = parse_perf(perf_process.get_output())
+            parsed_make_cmd = make_cmd.split('CFLAGS+=')[1][2:-1]
             results.append({
-                'make_cmd': make_cmd,
-                'wrk_cmd': wrk_cmd,
-                'wrk_results': wrk_results,
+                'make_cmd': parsed_make_cmd,
+                'matsize': wrk_cmd[1].split('=')[1],
+                'pattern_size': wrk_cmd[2].split('=')[1],
+                'nb_patterns': wrk_cmd[3].split('=')[1],
+                'cache-misses': cache_misses,
+                'cache-references': cache_references,
+                'time elapsed': time_elapsed
                 #'cache_misses': cache_misses,
                 #'cache_references': cache_references
             })
@@ -166,6 +179,25 @@ def main():
             #    cache_misses = int(lines[0].split()[0])
             #    cache_references = int(lines[1].split()[0])
             #    print(f"[INFO] Cache misses: {cache_misses}, cache references: {cache_references}")
+
+        print("Printing results:")
+        print(results)
+
+        data_file = open('performance_data.csv', 'w')
+        
+        csv_writer = csv.writer(data_file)
+        
+        count = 0
+        
+        for result in results:
+            if count == 0:
+                csv_writer.writerow(result.keys())
+                count += 1
+        
+            csv_writer.writerow(result.values())
+        
+        data_file.close()
+
     except Exception as e:
         print(f"[ERROR] An error occurred: {e}")
     finally:

@@ -1,1 +1,5 @@
-matsize,patterns_size,nb_patterns,throughput,flags,requests,requests_per_sec,transfer_per_sec
+make_cmd,matsize,pattern_size,nb_patterns,cache-misses,cache-references,time elapsed
+DUNROLL,64,4,1,3210881,26730085,"9,723156201"
+DCACHE_AWARE,512,4,1,2934520,26761120,"1,142858708"
+DBEST,64,32,16,2619742,24468880,"1,212018809"
+DCACHE_AWARE -DUNROLL,64,128,16,2678180,26323435,"1,223010310"
