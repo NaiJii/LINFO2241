@@ -170,8 +170,6 @@ def main():
                     'cache-misses': cache_misses,
                     'cache-references': cache_references,
                     'time elapsed': time_elapsed
-                    #'cache_misses': cache_misses,
-                    #'cache_references': cache_references
                 })
 
         print("[INFO] Server and tests completed.")

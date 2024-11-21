@@ -2,15 +2,15 @@
 #define UTILS_H
 
 #include "utils.h"
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 
-#define BLOCK_SIZE 64
+#define MULTITHREAD
+// Blocking size for matrix multiplication
+// BLOCK_SIZE of less than 8 will not work because in our matrix multiplication thread, we unroll the loop by 8.
+// This could be fixed by unrolling less
+#define BLOCK_SIZE 8
 #define min(a, b) (((a)<(b))?(a):(b))
 
-// cache efficient by default
+// Loop unrolling with cache awareness
 #define LOOP_UNROLL(result, i, j, k, K, matrix1, matrix2) \
     for (k = 0; k + 8 <= K; k += 8) { \
         result[i * K + k] += matrix1[i * K + j] * matrix2[j * K + k]; \
@@ -26,6 +26,7 @@
         result[i * K + k] += matrix1[i * K + j] * matrix2[j * K + k]; \
     }
 
+// Loop unrolling without cache awareness
 #define LOOP_UNROLL_INEFFICIENT(result, i, j, k, K, matrix1, matrix2) \
     for (k = 0; k + 8 <= K; k += 8) { \
         result[i * K + j] += matrix1[i * K + k] * matrix2[k * K + j]; \
@@ -70,17 +71,14 @@ void parse_request(struct parsed_request *parsed, char *request, size_t request_
     //      MatrixSideSize,NbPatterns,SizeOfEachPattern,Text..NetworkLayer..Pattern1..PatternN
     // e.g. 2,2,1,ThisIsAnExample!SomeNetworkLayerExamJump
 
-    PRINTF("=== Parsing request ===\n", 0);
+    PRINTF("=== Parsing request ===\n");
     PRINTF("request: %s\n", request);
     parsed->matrices_size = extract_number(&request);
     PRINTF("matrices_size: %d\n", parsed->matrices_size);
-    PRINTF("request delta: %lu\n", request - r);
     parsed->nb_patterns = extract_number(&request);
     PRINTF("nb_patterns: %d\n", parsed->nb_patterns);
-    PRINTF("request delta: %lu\n", request - r);
     parsed->patterns_size = extract_number(&request);
     PRINTF("patterns_size: %d\n", parsed->patterns_size);
-    PRINTF("request delta: %lu\n", request - r);
 
     // The text and network layer are of the same size.
     const size_t text_len = parsed->matrices_size * parsed->matrices_size * sizeof(uint32_t);
@@ -106,7 +104,54 @@ void parse_request(struct parsed_request *parsed, char *request, size_t request_
     PRINTF("mat1: %p\n", (void*)parsed->mat1);
     PRINTF("mat2: %p\n", (void*)parsed->mat2);
     PRINTF("patterns: %p\n", (void*)parsed->patterns);
-    PRINTF("=== End of parsing ===\n", 0);
+    PRINTF("=== End of parsing ===\n");
+}
+
+void *multiply_matrix_thread(void *arg) {
+    struct thread_data *data = (struct thread_data *)arg;
+    uint32_t *matrix1 = data->matrix1;
+    uint32_t *matrix2 = data->matrix2;
+    uint32_t *result = data->result;
+    uint32_t K = data->K;
+    uint32_t iBlock = data->i;
+    uint32_t kBlock = data->k;
+    uint32_t jBlock = data->j;
+
+    for (uint32_t i = iBlock; i < min(iBlock + BLOCK_SIZE, K); i++) {
+        for (uint32_t k = kBlock; k < min(kBlock + BLOCK_SIZE, K); k++) {
+            uint32_t a_val = matrix1[i * K + k];
+            __builtin_prefetch(&matrix1[(i + 1) * K + k], 0, 1); // Prefetch next row of matrix1
+
+            uint32_t *b_ptr = &matrix2[k * K + jBlock];
+            uint32_t *r_ptr = &result[i * K + jBlock];
+
+            for (uint32_t j = 0; j < BLOCK_SIZE; j += 8) {
+                if (jBlock + j + 7 < K) {
+                    // Prefetch next block of matrix2
+                    __builtin_prefetch(&b_ptr[j + 8], 0, 1);
+                    
+                    // Unrolling loop by 8
+                    r_ptr[j] += a_val * b_ptr[j];
+                    r_ptr[j + 1] += a_val * b_ptr[j + 1];
+                    r_ptr[j + 2] += a_val * b_ptr[j + 2];
+                    r_ptr[j + 3] += a_val * b_ptr[j + 3];
+                    r_ptr[j + 4] += a_val * b_ptr[j + 4];
+                    r_ptr[j + 5] += a_val * b_ptr[j + 5];
+                    r_ptr[j + 6] += a_val * b_ptr[j + 6];
+                    r_ptr[j + 7] += a_val * b_ptr[j + 7];
+                } else { // Handle case when jBlock + j + 7 exceeds K
+                    for (uint32_t jj = 0; jj < 8 && jBlock + j + jj < K; jj++) {
+                        r_ptr[j + jj] += a_val * b_ptr[j + jj];
+                    }
+                }
+
+                // Prefetch next block of result
+                __builtin_prefetch(&r_ptr[j + 8], 1, 1);
+            }
+        }
+    }
+
+    pthread_exit(NULL);
 }
 
 /**
@@ -120,15 +165,48 @@ void parse_request(struct parsed_request *parsed, char *request, size_t request_
  *
  * @note `result` should be modified to the result of the multiplication of the matrices
 */
-
-#define BLOCK
-
 void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uint32_t K) {
     // i is the row index
     // j is the column index
     // k is the index of the element in the row/column
     memset(result, 0, K * K * sizeof(uint32_t));
-#if defined(BLOCK)
+#if defined(MULTITHREAD) 
+    uint32_t num_blocks = ( K + BLOCK_SIZE - 1 ) / BLOCK_SIZE; 
+    PRINTF("num_blocks: %d = (%d + %d - 1) / %d\n", num_blocks, K, BLOCK_SIZE, BLOCK_SIZE);
+    uint32_t num_threads = num_blocks * num_blocks; 
+
+    pthread_t threads[num_threads];
+    struct thread_data thread_data[num_threads];
+    PRINTF("num_threads: %d\n", num_threads);
+    
+    uint32_t t = 0;
+    
+    for (uint32_t iBlock = 0; iBlock < K; iBlock += BLOCK_SIZE) {
+        for (uint32_t kBlock = 0; kBlock < K; kBlock += BLOCK_SIZE) {
+            for (uint32_t jBlock = 0; jBlock < K; jBlock += BLOCK_SIZE) {
+                if (t < num_threads) {
+                    thread_data[t].matrix1 = matrix1;
+                    thread_data[t].matrix2 = matrix2;
+                    thread_data[t].result = result;
+                    thread_data[t].K = K;
+                    thread_data[t].i = iBlock;
+                    thread_data[t].k = kBlock;
+                    thread_data[t].j = jBlock;
+
+                    PRINTF("Creating thread %d\n", t);
+                    pthread_create(&threads[t], NULL, multiply_matrix_thread, &thread_data[t]);
+                    t++;
+                }
+            }
+        }
+    }
+
+    // Wait for all threads to complete
+    for (uint32_t i = 0; i < num_threads; i++) {
+        pthread_join(threads[i], NULL);
+    }
+#else 
+#if defined (BEST)
     for (uint32_t iBlock = 0; iBlock < K; iBlock += BLOCK_SIZE) {
         for (uint32_t kBlock = 0; kBlock < K; kBlock += BLOCK_SIZE) { 
             for (uint32_t jBlock = 0; jBlock < K; jBlock += BLOCK_SIZE) {
@@ -164,11 +242,10 @@ void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uin
         }
     }
 #else
-
     for (uint32_t i = 0; i < K; i++) {
         for (uint32_t j = 0; j < K; j++) {
             uint32_t k = 0;
-#if defined(BEST) || (defined(UNROLL) && defined(CACHE_AWARE))
+#if defined(UNROLL) && defined(CACHE_AWARE)
             LOOP_UNROLL(result, i, j, k, K, matrix1, matrix2);
 #elif defined(UNROLL) && !defined(CACHE_AWARE)
             LOOP_UNROLL_INEFFICIENT(result, i, j, k, K, matrix1, matrix2);
@@ -184,8 +261,7 @@ void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uin
         }
     }
 #endif
-
-
+#endif
 }
 
 /**
@@ -197,7 +273,6 @@ void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uin
  * @param pattern_size: The size of each pattern
  * @param nb_patterns: The number of patterns
  * @param res: The result, the list of shortest distances for each pattern
- * @param K : The dimension of the file matrix
  *
  * @note `file` should be modified to contain the encrypted file.
 */
@@ -214,6 +289,9 @@ void test_patterns(uint32_t *matrix, uint32_t matrix_size, uint32_t *patterns,
             uint32_t dist = 0;
             uint32_t new_j = j * pattern_size;
             uint32_t k = 0;
+
+            __builtin_prefetch(&patterns[new_j], 0, 1);
+
 #if defined(UNROLL) || defined(BEST)
             for (; k + 4 <= pattern_size; k += 4) {
                 uint32_t diff0 = matrix[i + k] - patterns[new_j + k];
@@ -221,17 +299,14 @@ void test_patterns(uint32_t *matrix, uint32_t matrix_size, uint32_t *patterns,
                 uint32_t diff2 = matrix[i + k + 2] - patterns[new_j + k + 2];
                 uint32_t diff3 = matrix[i + k + 3] - patterns[new_j + k + 3];
                 dist += diff0 * diff0 + diff1 * diff1 + diff2 * diff2 + diff3 * diff3;
+
+                __builtin_prefetch(&matrix[i + k + 4], 0, 1);
+                __builtin_prefetch(&patterns[new_j + k + 4], 0, 1);
             }
-            // Handle remaining elements
-            for (; k < pattern_size; k++) {
-                uint32_t diff = matrix[i + k] - patterns[new_j + k];
-                dist += diff * diff;
-            }
-#else 
+#endif
             for (; k < pattern_size; k++) {
                 dist += (matrix[i + k] - patterns[new_j + k]) * (matrix[i + k] - patterns[new_j + k]);
             }
-#endif
 
             if (dist < res[j]) {
                 res[j] = dist;
@@ -249,8 +324,7 @@ void test_patterns(uint32_t *matrix, uint32_t matrix_size, uint32_t *patterns,
 */
 void res_to_string(char *str, uint32_t *res, uint32_t res_size) { 
     for (uint32_t i = 0; i < res_size; i++) {
-        sprintf(str, "%d", res[i]);
-        str += strlen(str);
+        str += sprintf(str, "%d", res[i]);
         if (i != res_size - 1) {
             sprintf(str, ",");
             str += strlen(str);
