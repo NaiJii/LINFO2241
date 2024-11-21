@@ -13,14 +13,14 @@ def generate_wrk_config():
     run_configs = []
     # matsize, patterns_size, nb_patterns, duration, threads, connections, throughput
     # matsize 64, 512
-    run_configs.append((64, 4, 1, duration, 2, 100, -1))
-    run_configs.append((512, 4, 1, duration, 2, 100, -1))
+    run_configs.append((64, 4, 1, duration, 1, 100, -1))
+    run_configs.append((512, 4, 1, duration, 1, 100, -1))
     # patterns_size 32, 128
-    run_configs.append((64, 32, 16, duration, 2, 100, -1))
-    run_configs.append((64, 128, 16, duration, 2, 100, -1))
+    run_configs.append((64, 32, 16, duration, 1, 100, -1))
+    run_configs.append((64, 128, 16, duration, 1, 100, -1))
     # nb_patterns 8, 128
-    run_configs.append((64, 32, 8, duration, 2, 100, -1))
-    run_configs.append((64, 32, 128, duration, 2, 100, -1))
+    run_configs.append((64, 32, 8, duration, 1, 100, -1))
+    run_configs.append((64, 32, 128, duration, 1, 100, -1))
     print(f"[INFO] Generated {len(run_configs)} run configurations.")
 
     cmds = []
@@ -136,7 +136,7 @@ def main():
             for wrk_cmd in wrk_cfgs:
                 # touch file
                 server = run_make(make_cmd)  
-                time.sleep(1)
+                time.sleep(5)
 
                 wrk = run_wrk(wrk_cmd)
                 wrk.wait()
