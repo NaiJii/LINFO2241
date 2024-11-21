@@ -7,9 +7,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define BLOCK_SIZE 64
-#define min(a, b) (((a)<(b))?(a):(b))
-
 // cache efficient by default
 #define LOOP_UNROLL(result, i, j, k, K, matrix1, matrix2) \
     for (k = 0; k + 8 <= K; k += 8) { \
@@ -121,50 +118,11 @@ void parse_request(struct parsed_request *parsed, char *request, size_t request_
  * @note `result` should be modified to the result of the multiplication of the matrices
 */
 
-#define BLOCK
-
 void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uint32_t K) {
     // i is the row index
     // j is the column index
     // k is the index of the element in the row/column
     memset(result, 0, K * K * sizeof(uint32_t));
-#if defined(BLOCK)
-    for (uint32_t iBlock = 0; iBlock < K; iBlock += BLOCK_SIZE) {
-        for (uint32_t kBlock = 0; kBlock < K; kBlock += BLOCK_SIZE) { 
-            for (uint32_t jBlock = 0; jBlock < K; jBlock += BLOCK_SIZE) {
-                for (uint32_t i = iBlock; i < min(iBlock + BLOCK_SIZE, K); i++) {
-                    for (uint32_t k = kBlock; k < min(kBlock + BLOCK_SIZE, K); k++) {
-                        uint32_t a_val = matrix1[i * K + k];
-                        __builtin_prefetch(&matrix1[(i + 1) * K + k], 0, 1);
-
-                        uint32_t *b_ptr = &matrix2[k * K + jBlock];
-                        uint32_t *r_ptr = &result[i * K + jBlock];
-                        for (uint32_t j = 0; j < BLOCK_SIZE; j += 8) {
-                            if (jBlock + j + 7 < K) {
-                                __builtin_prefetch(&b_ptr[j + 8], 0, 1);
-                                r_ptr[j] += a_val * b_ptr[j];
-                                r_ptr[j + 1] += a_val * b_ptr[j + 1];
-                                r_ptr[j + 2] += a_val * b_ptr[j + 2];
-                                r_ptr[j + 3] += a_val * b_ptr[j + 3];
-                                r_ptr[j + 4] += a_val * b_ptr[j + 4];
-                                r_ptr[j + 5] += a_val * b_ptr[j + 5];
-                                r_ptr[j + 6] += a_val * b_ptr[j + 6];
-                                r_ptr[j + 7] += a_val * b_ptr[j + 7];
-                            } else { // unrolling exceeds K
-                                for (uint32_t jj = 0; jj < 8 && jBlock + j + jj < K; jj++) {
-                                    r_ptr[j + jj] += a_val * b_ptr[j + jj];
-                                }
-                            }
-
-                            __builtin_prefetch(&r_ptr[j + 8], 1, 1);
-                        }
-                    }
-                }
-            }
-        }
-    }
-#else
-
     for (uint32_t i = 0; i < K; i++) {
         for (uint32_t j = 0; j < K; j++) {
             uint32_t k = 0;
@@ -183,9 +141,6 @@ void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uin
 #endif
         }
     }
-#endif
-
-
 }
 
 /**
