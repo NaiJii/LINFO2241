@@ -132,46 +132,49 @@ def main():
         # for cache misses and cache references, use the following command: perf stat -e cache-misses,cache-references -o perf_output.txt -p <pid>
         results = []
         os.system("touch output.txt")
-        for make_cmd, wrk_cmd in zip(make_cfgs, wrk_cfgs):
-            # touch file
-            server = run_make(make_cmd)  
-            time.sleep(1)
+        for make_cmd in make_cfgs:
+            for wrk_cmd in wrk_cfgs:
+                # touch file
+                server = run_make(make_cmd)  
+                time.sleep(1)
 
-            wrk = run_wrk(wrk_cmd)
-            wrk.wait()
-            wrk_output, _ = wrk.communicate()
-            wrk_results = parse_wrk(wrk_output.decode())
-            print(f"[INFO] WRK results: {wrk_results}")
+                wrk = run_wrk(wrk_cmd)
+                wrk.wait()
+                wrk_output, _ = wrk.communicate()
+                wrk_results = parse_wrk(wrk_output.decode())
+                print(wrk.communicate())
+                print(f"[INFO] WRK results: {wrk_results}")
 
-            cache_misses = ""
-            cache_references = ""
-            time_elapsed = ""
+                cache_misses = ""
+                cache_references = ""
+                time_elapsed = ""
 
-            with open("output.txt") as f:
-                lines = f.readlines()
-                temp = ""
-                for line in lines:
-                    temp += line
-                
-                cache_misses = temp.replace(" ", "").split('cache-misses')[0].split('\n')[-1].replace('.','')
-                cache_references = temp.replace(" ", "").split('cache-references')[0].split('\n')[-1].replace('.','')
-                time_elapsed = temp.replace(" ", "").split('secondstimeelapsed')[0].split('\n')[-1].replace('.','')
+                with open("output.txt") as f:
+                    lines = f.readlines()
+                    temp = ""
+                    for line in lines:
+                        temp += line
+                    
+                    cache_misses = temp.replace(" ", "").split('cache-misses')[0].split('\n')[-1].replace('.','')
+                    cache_references = temp.replace(" ", "").split('cache-references')[0].split('\n')[-1].replace('.','')
+                    time_elapsed = temp.replace(" ", "").split('secondstimeelapsed')[0].split('\n')[-1].replace('.','')
 
-            #cache_misses, cache_references = parse_perf(perf_process.get_output())
-            parsed_make_cmd = make_cmd.split('CFLAGS+=')[1][2:-1]
-            results.append({
-                'make_cmd': parsed_make_cmd,
-                'matsize': wrk_cmd[1].split('=')[1],
-                'pattern_size': wrk_cmd[2].split('=')[1],
-                'nb_patterns': wrk_cmd[3].split('=')[1],
-                'cache-misses': cache_misses,
-                'cache-references': cache_references,
-                'time elapsed': time_elapsed
-                #'cache_misses': cache_misses,
-                #'cache_references': cache_references
-            })
+                #cache_misses, cache_references = parse_perf(perf_process.get_output())
+                parsed_make_cmd = make_cmd.split('CFLAGS+=')[1][2:-1]
+                results.append({
+                    'make_cmd': parsed_make_cmd,
+                    'matsize': wrk_cmd[1].split('=')[1],
+                    'pattern_size': wrk_cmd[2].split('=')[1],
+                    'nb_patterns': wrk_cmd[3].split('=')[1],
+                    'transfers_per_sec': wrk_results['requests_per_sec'],
+                    'cache-misses': cache_misses,
+                    'cache-references': cache_references,
+                    'time elapsed': time_elapsed
+                    #'cache_misses': cache_misses,
+                    #'cache_references': cache_references
+                })
 
-            print("[INFO] Server and tests completed.")
+        print("[INFO] Server and tests completed.")
 
             # Parse the perf output
             #with open("perf_output.txt") as f:
