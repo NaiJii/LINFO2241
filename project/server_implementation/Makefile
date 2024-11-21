@@ -1,4 +1,4 @@
-P3_FLAGS = -mno-sse2 -mno-avx -mno-avx2 -mno-avx512f -fno-unroll-loops -fno-tree-vectorize -O2 -fopenmp -DOMP_NUM_THREADS=8
+P3_FLAGS = -mno-sse2 -mno-avx -mno-avx2 -mno-avx512f -fno-unroll-loops -fno-tree-vectorize -O2
 override CFLAGS+= -ggdb -fPIC -Wextra -Werror -Wall -pedantic $(P3_FLAGS)
 NB_WORKER = 1
 
@@ -25,12 +25,6 @@ ifeq ($(BEST_FLAG),-DBEST)
 	@echo "CFLAGS contains -DBEST"
 else
 	@echo "CFLAGS does not contain -DBEST"
-endif
-
-ifeq ($(OPENMP_FLAG),-fopenmp)
-	@echo "CFLAGS contains -fopenmp"
-else
-	@echo "CFLAGS does not contain -fopenmp"
 endif
 
 build: main.c ../utils/utils.c check-flags
