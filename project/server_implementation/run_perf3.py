@@ -21,6 +21,7 @@ def generate_wrk_config():
     # nb_patterns 8, 128
     run_configs.append((64, 32, 8, duration, 1, 100, -1))
     run_configs.append((64, 32, 128, duration, 1, 100, -1))
+
     print(f"[INFO] Generated {len(run_configs)} run configurations.")
 
     cmds = []
@@ -44,10 +45,15 @@ def generate_wrk_config():
     return cmds
 
 def generate_make_config():
-    flags = ["-DUNROLL", "-DCACHE_AWARE", "-DBEST", "-DCACHE_AWARE -DUNROLL"]
+    flags = ["", "-DUNROLL", "-DCACHE_AWARE", "-DBEST", "-DCACHE_AWARE -DUNROLL"]
     cmds = []
     for flag in flags:
         cmds.append(f"perf stat --timeout 30010 -o output.txt -e cache-misses,cache-references make -B run_release CFLAGS+='{flag}'")
+
+    # try for different worker counts
+    for i in range(2, 11): 
+        cmds.append(f"perf stat --timeout 30010 -o output.txt -e cache-misses,cache-references make -B run_release CFLAGS+=-DBEST NB_WORKER={i}")
+
     return cmds
 
 def run_wrk(cmd):
@@ -133,11 +139,25 @@ def main():
         results = []
         os.system("touch output.txt")
         for make_cmd in make_cfgs:
-            for wrk_cmd in wrk_cfgs:
-                # touch file
-                server = run_make(make_cmd)  
-                time.sleep(5)
-
+            # specific tests for resource utilization only modifying the number of workers
+            # with configuration matsize=512, patterns_size=8, nb_patterns=1, duration=30, threads=1, connections=100, throughput=-1
+            if "NB_WORKER" in make_cmd:
+                run_make(make_cmd)  
+                time.sleep(10)
+                wrk_cmd = [
+                    "env",
+                    "matsize=512",
+                    "patterns_size=8",
+                    "nb_patterns=1",
+                    "../../wrk2/wrk",
+                    "http://localhost:8888/",
+                    "-R -1",
+                    "-d30s",
+                    "-c100",
+                    "-t1",
+                    "-s",
+                    "../wrk_scripts/simple_scenario.lua"
+                ]
                 wrk = run_wrk(wrk_cmd)
                 wrk.wait()
                 wrk_output, _ = wrk.communicate()
@@ -171,6 +191,45 @@ def main():
                     'cache-references': cache_references,
                     'time elapsed': time_elapsed
                 })
+            else:
+                for wrk_cmd in wrk_cfgs:
+
+                    run_make(make_cmd)  
+                    time.sleep(10)
+
+                    wrk = run_wrk(wrk_cmd)
+                    wrk.wait()
+                    wrk_output, _ = wrk.communicate()
+                    wrk_results = parse_wrk(wrk_output.decode())
+                    print(wrk.communicate())
+                    print(f"[INFO] WRK results: {wrk_results}")
+
+                    cache_misses = ""
+                    cache_references = ""
+                    time_elapsed = ""
+
+                    with open("output.txt") as f:
+                        lines = f.readlines()
+                        temp = ""
+                        for line in lines:
+                            temp += line
+                        
+                        cache_misses = temp.replace(" ", "").split('cache-misses')[0].split('\n')[-1].replace('.','')
+                        cache_references = temp.replace(" ", "").split('cache-references')[0].split('\n')[-1].replace('.','')
+                        time_elapsed = temp.replace(" ", "").split('secondstimeelapsed')[0].split('\n')[-1].replace('.','')
+
+                    #cache_misses, cache_references = parse_perf(perf_process.get_output())
+                    parsed_make_cmd = make_cmd.split('CFLAGS+=')[1][2:-1]
+                    results.append({
+                        'make_cmd': parsed_make_cmd,
+                        'matsize': wrk_cmd[1].split('=')[1],
+                        'pattern_size': wrk_cmd[2].split('=')[1],
+                        'nb_patterns': wrk_cmd[3].split('=')[1],
+                        'transfers_per_sec': wrk_results['requests_per_sec'],
+                        'cache-misses': cache_misses,
+                        'cache-references': cache_references,
+                        'time elapsed': time_elapsed
+                    })
 
         print("[INFO] Server and tests completed.")
 

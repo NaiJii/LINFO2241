@@ -40,6 +40,7 @@ kill_nginx:
 
 run_release: build kill_nginx
 	echo "Application is running in release mode, this is the prefered mode for measurements..."
+	echo "Number of worker: $(NB_WORKER)"
 	../../nginx/install_release/sbin/nginx -c ../../project/nginx-conf/project.conf -g "error_log /dev/stdout error; daemon off;worker_processes $(NB_WORKER);";
 
 run_debug: build kill_nginx
