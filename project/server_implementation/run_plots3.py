@@ -42,7 +42,7 @@ def plot_case(name, n1, n2, pre_ledger, aft_ledger):
     plt.xticks([r + (barWidth/2) for r in range(len(case_y_pre))], 
             ['ORIGINAL', 'DUNROLL', 'DCACHE AWARE', 'DBEST', 'DUNROLL & DCACHE AWARE'], fontsize=14)
 
-    plt.legend()
+    #plt.legend()
     plt.title('Case ' + name, fontweight = 'bold', fontsize = 25)
     plt.savefig('measurements/case_' + name + '.svg', format='svg')
 
