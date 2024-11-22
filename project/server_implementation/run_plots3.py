@@ -27,26 +27,25 @@ def plot_case(name, n1, n2, pre_ledger, aft_ledger):
     br1 = np.arange(len(case_y_pre)) 
     br2 = [x + barWidth for x in br1]  
 
-    plt.bar(br1, case_y_pre, color ='r', width = barWidth, 
+    plt.bar(br1, case_y_pre, color ='black', width = barWidth, 
             edgecolor ='grey', label = pre_ledger) 
 
-    plt.bar(br2, case_y_aft, color ='g', width = barWidth, 
+    plt.bar(br2, case_y_aft, color ='grey', width = barWidth, 
             edgecolor ='grey', label = aft_ledger) 
 
     #plt.ylim(0)
 
     plt.yscale("log")
 
-    plt.xlabel('Compile flags', fontweight ='bold', fontsize = 15) 
-    plt.ylabel('Transfers per second', fontweight ='bold', fontsize = 15) 
-    plt.xticks([r + barWidth for r in range(len(case_y_pre))], 
-            ['DUNROLL', 'DCACHE AWARE', 'DBEST', 'DUNROLL and DCACHE AWARE'])
+    plt.xlabel('Compile flags', fontweight ='bold', fontsize = 20) 
+    plt.ylabel('Transfers per second', fontweight ='bold', fontsize = 20) 
+    plt.xticks([r + (barWidth/2) for r in range(len(case_y_pre))], 
+            ['ORIGINAL', 'DUNROLL', 'DCACHE AWARE', 'DBEST', 'DUNROLL & DCACHE AWARE'], fontsize=14)
 
     plt.legend()
-    plt.savefig('measurements/case1.svg', format='svg')
-    plt.title('name')
-    plt.show()
+    plt.title('Case ' + name, fontweight = 'bold', fontsize = 25)
+    plt.savefig('measurements/case_' + name + '.svg', format='svg')
 
-#plot_case('case 1', 0, 1, 'Smaller matrix size', 'Bigger matrix size')
-#plot_case('case 2', 2, 3, 'Smaller pattern size', 'Bigger pattern size')
-plot_case('case 3', 4, 5, 'Smaller amount of patterns', 'Larger amount of patterns')
+plot_case('1', 0, 1, 'Smaller matrix size', 'Bigger matrix size')
+plot_case('2', 2, 3, 'Smaller pattern size', 'Bigger pattern size')
+plot_case('3', 4, 5, 'Smaller amount of patterns', 'Larger amount of patterns')
