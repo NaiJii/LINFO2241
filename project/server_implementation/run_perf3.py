@@ -56,6 +56,12 @@ def generate_make_config():
 
     return cmds
 
+def generate_make_worker_config():
+    cmds = []
+    for i in range(2, 11): 
+        cmds.append(f"perf stat --timeout 30010 -o output.txt -e cache-misses,cache-references make -B run_release CFLAGS+=-DBEST NB_WORKER={i}")
+    return cmds
+
 def run_wrk(cmd):
     print(f"[INFO] Running wrk command: {cmd}")
     return subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)  
@@ -128,7 +134,92 @@ def save_to_csv(results):
     df.to_csv(f, index=False)
     print("[INFO] Results saved to CSV:", f)
 
+def generate_worker_csv():
+    try:
+        make_cfgs = generate_make_worker_config()
+        wrk_cfg = [
+            "env",
+            f"matsize=512",
+            f"patterns_size=8",
+            f"nb_patterns=1",
+            "../../wrk2/wrk",
+            "http://localhost:8888/",
+            f"-R -1",
+            f"-d30s",
+            f"-c100",
+            f"-t1",
+            "-s",
+            "../wrk_scripts/simple_scenario.lua"
+        ]
+
+        results = []
+        os.system("touch output.txt")
+
+        for make_cmd in make_cfgs:
+            run_make(make_cmd)  
+            time.sleep(10)
+            wrk = run_wrk(wrk_cfg)
+            wrk.wait()
+            wrk_output, _ = wrk.communicate()
+            wrk_results = parse_wrk(wrk_output.decode())
+            print(wrk.communicate())
+            print(f"[INFO] WRK results: {wrk_results}")
+
+            cache_misses = ""
+            cache_references = ""
+
+            with open("output.txt") as f:
+                lines = f.readlines()
+                temp = ""
+                for line in lines:
+                    temp += line
+                
+                cache_misses = temp.replace(" ", "").split('cache-misses')[0].split('\n')[-1].replace('.','')
+                cache_references = temp.replace(" ", "").split('cache-references')[0].split('\n')[-1].replace('.','')
+            f.close()
+
+            results.append({
+                'worker_count': make_cmd.split('NB_WORKER=')[1],
+                'matsize': wrk_cfg[1].split('=')[1],
+                'pattern_size': wrk_cfg[2].split('=')[1],
+                'nb_patterns': wrk_cfg[3].split('=')[1],
+                'transfers_per_sec': wrk_results['requests_per_sec'],
+                'cache-misses': cache_misses,
+                'cache-references': cache_references
+            })
+
+        print("[INFO] Server and tests completed.")
+
+        print("Printing results:")
+        print(results)
+
+        data_file = open('performance_data_worker.csv', 'w')
+
+        csv_writer = csv.writer(data_file)
+
+        count = 0
+
+        for result in results:
+            if count == 0:
+                csv_writer.writerow(result.keys())
+                count += 1
+
+            csv_writer.writerow(result.values())
+
+        data_file.close()
+
+    except Exception as e:
+        print(f"[ERROR] An error occurred: {e}")
+    finally:
+        print("[INFO] Cleanup complete.")
+
+
+
 def main():
+    generate_worker_csv()
+    return
+
+
     try:
         make_cfgs = generate_make_config()
         wrk_cfgs = generate_wrk_config()
@@ -139,36 +230,18 @@ def main():
         results = []
         os.system("touch output.txt")
         for make_cmd in make_cfgs:
-            # specific tests for resource utilization only modifying the number of workers
-            # with configuration matsize=512, patterns_size=8, nb_patterns=1, duration=30, threads=1, connections=100, throughput=-1
-            if "NB_WORKER" in make_cmd:
+            for wrk_cmd in wrk_cfgs:
                 run_make(make_cmd)  
                 time.sleep(10)
-                wrk_cmd = [
-                    "env",
-                    "matsize=512",
-                    "patterns_size=8",
-                    "nb_patterns=1",
-                    "../../wrk2/wrk",
-                    "http://localhost:8888/",
-                    "-R -1",
-                    "-d30s",
-                    "-c100",
-                    "-t1",
-                    "-s",
-                    "../wrk_scripts/simple_scenario.lua"
-                ]
                 wrk = run_wrk(wrk_cmd)
                 wrk.wait()
                 wrk_output, _ = wrk.communicate()
                 wrk_results = parse_wrk(wrk_output.decode())
                 print(wrk.communicate())
                 print(f"[INFO] WRK results: {wrk_results}")
-
                 cache_misses = ""
                 cache_references = ""
                 time_elapsed = ""
-
                 with open("output.txt") as f:
                     lines = f.readlines()
                     temp = ""
@@ -178,7 +251,6 @@ def main():
                     cache_misses = temp.replace(" ", "").split('cache-misses')[0].split('\n')[-1].replace('.','')
                     cache_references = temp.replace(" ", "").split('cache-references')[0].split('\n')[-1].replace('.','')
                     time_elapsed = temp.replace(" ", "").split('secondstimeelapsed')[0].split('\n')[-1].replace('.','')
-
                 #cache_misses, cache_references = parse_perf(perf_process.get_output())
                 parsed_make_cmd = make_cmd.split('CFLAGS+=')[1][2:-1]
                 results.append({
@@ -191,45 +263,6 @@ def main():
                     'cache-references': cache_references,
                     'time elapsed': time_elapsed
                 })
-            else:
-                for wrk_cmd in wrk_cfgs:
-
-                    run_make(make_cmd)  
-                    time.sleep(10)
-
-                    wrk = run_wrk(wrk_cmd)
-                    wrk.wait()
-                    wrk_output, _ = wrk.communicate()
-                    wrk_results = parse_wrk(wrk_output.decode())
-                    print(wrk.communicate())
-                    print(f"[INFO] WRK results: {wrk_results}")
-
-                    cache_misses = ""
-                    cache_references = ""
-                    time_elapsed = ""
-
-                    with open("output.txt") as f:
-                        lines = f.readlines()
-                        temp = ""
-                        for line in lines:
-                            temp += line
-                        
-                        cache_misses = temp.replace(" ", "").split('cache-misses')[0].split('\n')[-1].replace('.','')
-                        cache_references = temp.replace(" ", "").split('cache-references')[0].split('\n')[-1].replace('.','')
-                        time_elapsed = temp.replace(" ", "").split('secondstimeelapsed')[0].split('\n')[-1].replace('.','')
-
-                    #cache_misses, cache_references = parse_perf(perf_process.get_output())
-                    parsed_make_cmd = make_cmd.split('CFLAGS+=')[1][2:-1]
-                    results.append({
-                        'make_cmd': parsed_make_cmd,
-                        'matsize': wrk_cmd[1].split('=')[1],
-                        'pattern_size': wrk_cmd[2].split('=')[1],
-                        'nb_patterns': wrk_cmd[3].split('=')[1],
-                        'transfers_per_sec': wrk_results['requests_per_sec'],
-                        'cache-misses': cache_misses,
-                        'cache-references': cache_references,
-                        'time elapsed': time_elapsed
-                    })
 
         print("[INFO] Server and tests completed.")
 
