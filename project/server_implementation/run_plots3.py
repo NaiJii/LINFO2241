@@ -51,8 +51,8 @@ def plot_case(name, title, n1, n2, pre_ledger, aft_ledger):
     plt.yscale("log")
     if len(set(case_y_pre + case_y_aft)) == 1:
         plt.ylim([min(case_y_pre + case_y_aft) * 0.9, max(case_y_pre + case_y_aft) * 1.1])
-    plt.xlabel('Compile flags', fontweight ='bold', fontsize = 13)
-    plt.ylabel('Transfers per second', fontweight ='bold', fontsize = 13)
+    plt.xlabel('Compile flags', fontweight ='bold', fontsize = 22)
+    plt.ylabel('Transfers per second', fontweight ='bold', fontsize = 22)
     plt.xticks([r + (barWidth/2) for r in range(len(case_y_pre))], 
             ['NONE', 'UNROLL', 'CACHE', 'UNROLL & CACHE', 'BEST'], fontsize=18)
     
@@ -108,6 +108,8 @@ def plot_case_cache(name, title, n1, n2, n3, l1, l2, l3, stat, log=False):
     fig.tight_layout()
     fig.legend(fontsize=16, loc='upper right')
     #plt.title(title, fontweight='bold', fontsize=30)
+    plt.xlabel('Compile flags', fontweight ='bold', fontsize = 22)
+    plt.ylabel(stat, fontweight ='bold', fontsize = 22)
     plt.savefig('measurements/' + name + '.svg', format='svg')
     plt.close()
 
@@ -153,6 +155,8 @@ def plot_cache_miss_rate(name, title, n1, n2, n3, l1, l2, l3, log=False):
     fig.tight_layout()
     fig.legend(fontsize=16, loc='upper right')
     #plt.title(title, fontweight='bold', fontsize=30)
+    plt. xlabel('Compile flags', fontweight ='bold', fontsize = 22)
+    plt.ylabel('Cache miss rate (%)', fontweight ='bold', fontsize = 22)
     plt.savefig('measurements/' + name + '.svg', format='svg')
     plt.close()
 
