@@ -1,14 +1,14 @@
-# started on Sat Nov 23 17:26:16 2024
+# started on Sun Nov 24 14:11:18 2024
 
 
  Performance counter stats for 'make -B run_release CFLAGS+=-DBEST NB_WORKER=10':
 
-       443,757,833      cache-misses                     #   37.09% of all cache refs         
-     1,196,520,760      cache-references                                                      
+       462,558,906      cache-misses                     #   36.75% of all cache refs         
+     1,258,519,257      cache-references                                                      
 
-      30.055693392 seconds time elapsed
+      30.059702724 seconds time elapsed
 
-       0.478755000 seconds user
-       0.105932000 seconds sys
+       0.461725000 seconds user
+       0.079626000 seconds sys
 
 

@@ -58,7 +58,7 @@ def generate_make_config():
 
 def generate_make_worker_config():
     cmds = []
-    for i in range(2, 11): 
+    for i in range(1, 11): 
         cmds.append(f"perf stat --timeout 30010 -o output.txt -e cache-misses,cache-references make -B run_release CFLAGS+=-DBEST NB_WORKER={i}")
     return cmds
 
