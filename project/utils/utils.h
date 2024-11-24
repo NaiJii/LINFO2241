@@ -34,7 +34,18 @@ typedef struct {
     uint32_t K;
     uint32_t start_row;
     uint32_t end_row;
-} thread_data_t;
+} multiply_matrix_data_t;
+
+typedef struct {
+    uint32_t *matrix;
+    uint32_t matrix_size;
+    uint32_t *patterns;
+    uint32_t pattern_size;
+    uint32_t nb_patterns;
+    uint32_t *res;
+    uint32_t start_pattern;
+    uint32_t end_pattern;
+} test_patterns_data_t;
 
 int foo(void);
 // Functions you are asked to implement
@@ -48,3 +59,4 @@ uint32_t extract_number(char **str);
 
 // Multithreaded functions
 void *multiply_matrix_thread(void *arg);
+void *test_patterns_thread(void *arg);
