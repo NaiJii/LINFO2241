@@ -55,8 +55,14 @@ def plot_case(name, title, n1, n2, pre_ledger, aft_ledger):
     plt.ylabel('Transfers per second', fontweight ='bold', fontsize = 22) 
     plt.xticks([r + (barWidth/2) for r in range(len(case_y_pre))], 
             ['NONE', 'UNROLL', 'CACHE', 'UNROLL & CACHE', 'BEST'], fontsize=18)
+    
+    for i in range(len(case_y_pre)):
+        plt.text(i, case_y_pre[i], format_number(case_y_pre[i]), ha='center', va='bottom')
+        plt.text(i + barWidth, case_y_aft[i], format_number(case_y_aft[i]), ha='center', va='bottom')
+    plt.yticks(fontsize=18)
+    
     plt.legend(fontsize = 18, loc='upper right')
-    plt.title(title, fontweight = 'bold', fontsize = 30)
+    #plt.title(title, fontweight = 'bold', fontsize = 30)
     plt.savefig('measurements/case_' + name + '.svg', format='svg')
     plt.close()
 
@@ -89,7 +95,6 @@ def plot_case_cache(name, title, n1, n2, n3, l1, l2, l3, stat, log=False):
     if log: 
         ax1.set_yscale("log")
 
-    # Show the number of the bar on top of it
     for i in range(len(misses_1)):
         ax1.text(i, misses_1[i], format_number(misses_1[i]), ha='center', va='bottom')
         ax1.text(i + barWidth, misses_2[i], format_number(misses_2[i]), ha='center', va='bottom')
@@ -102,11 +107,11 @@ def plot_case_cache(name, title, n1, n2, n3, l1, l2, l3, stat, log=False):
     
     fig.tight_layout()
     fig.legend(fontsize=16, loc='upper right')
-    plt.title(title, fontweight='bold', fontsize=30)
-    plt.savefig('measurements/case_' + name + '_' + stat + '.svg', format='svg')
+    #plt.title(title, fontweight='bold', fontsize=30)
+    plt.savefig('measurements/' + name + '.svg', format='svg')
     plt.close()
 
-def plot_cache_miss_rate(name, title, n1, n2, n3, l1, l2, l3):
+def plot_cache_miss_rate(name, title, n1, n2, n3, l1, l2, l3, log=False):
     misses_1 = []
     misses_2 = []
     misses_3 = []
@@ -130,8 +135,11 @@ def plot_cache_miss_rate(name, title, n1, n2, n3, l1, l2, l3):
     br2 = [x + barWidth for x in br1]
     ax1.bar(br2, misses_2, color='grey', width=barWidth, edgecolor='grey', label=l2)
     br3 = [x + barWidth for x in br2]
-    ax1.bar(br3, misses_3, color='blue', width=barWidth, edgecolor='grey', label=l3)
+    ax1.bar(br3, misses_3, color='white', width=barWidth, edgecolor='black', label=l3)
     
+    if log:
+        ax1.set_yscale("log")
+
     # Show the number of the bar on top of it
     for i in range(len(misses_1)):
         ax1.text(i, misses_1[i], format_number(misses_1[i]), ha='center', va='bottom')
@@ -145,30 +153,18 @@ def plot_cache_miss_rate(name, title, n1, n2, n3, l1, l2, l3):
 
     fig.tight_layout()
     fig.legend(fontsize=16, loc='upper right')
-    plt.title(title, fontweight='bold', fontsize=30)
-    plt.savefig('measurements/case_' + name + '_cache_rate.svg', format='svg')
+    #plt.title(title, fontweight='bold', fontsize=30)
+    plt.savefig('measurements/' + name + '.svg', format='svg')
     plt.close()
 
 plot_case('1', 'Matrix size test', 0, 1, '64', '512')
 plot_case('2', 'Pattern size test', 2, 3, '32', '128')
 plot_case('3', 'Number of patterns test', 4, 5, '8', '128')
 
-# show a barplot for cache-misses , having one bar per test case per compile flag
+plot_case_cache('misses', "", 1, 3, 5, 'matrix', 'pattern', 'pattern count', 'cache-misses', True)
+plot_case_cache('references', "", 1, 3, 5, 'matrix', 'pattern', 'pattern count', 'cache-references', True)
 
-plot_case_cache('', "", 1, 3, 5, 'matrix', 'pattern', 'pattern count', 'cache-misses', True)
-plot_case_cache('', "", 1, 3, 5, 'matrix', 'pattern', 'pattern count', 'cache-references', True)
-
-plot_cache_miss_rate('1', 'Matrix size test', 1, 3, 5, 'matrix', 'pattern', 'pattern count')
-
-### worker plot
-# worker_count,matsize,pattern_size,nb_patterns,transfers_per_sec,cache-misses,cache-references
-# 1, ...
-# 2, ...
-# 3, ...
-
-# compare the different worker counts on different aspects 
-# 1. transfers per second
-# 2. cache-misses / cache-references
+plot_cache_miss_rate('miss rate', 'Cache miss rate', 1, 3, 5, 'matrix', 'pattern', 'pattern count', True)
 
 fig, ax = plt.subplots(figsize =(12, 8))
 
