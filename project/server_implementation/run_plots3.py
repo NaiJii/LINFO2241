@@ -96,14 +96,57 @@ def plot_case_cache(name, title, n1, n2, n3, l1, l2, l3, stat, log=False):
         ax1.text(i + 2 * barWidth, misses_3[i], format_number(misses_3[i]), ha='center', va='bottom')
     
     ax1.set_yticklabels([format_number(y) for y in ax1.get_yticks()])
-    flags = ['NONE', 'UNROLL', 'CACHE AWARE', 'UNROLL & CACHE AWARE', 'BEST']
+    flags = ['NONE', 'UNROLL', 'CACHE AWARE', 'UNROLL & C.A.', 'BEST']
     ax1.set_xticks([r + barWidth for r in range(len(misses_1))])
     ax1.set_xticklabels(flags, fontsize=16)
     
     fig.tight_layout()
     fig.legend(fontsize=16, loc='upper right')
-    plt.title(title + "_" + stat, fontweight='bold', fontsize=30)
+    plt.title(title, fontweight='bold', fontsize=30)
     plt.savefig('measurements/case_' + name + '_' + stat + '.svg', format='svg')
+    plt.close()
+
+def plot_cache_miss_rate(name, title, n1, n2, n3, l1, l2, l3):
+    misses_1 = []
+    misses_2 = []
+    misses_3 = []
+
+    for index, row in results.iterrows():
+        if index % 6 == n1:
+            misses_1.append(float(row['cache-misses'].replace(",", "")) / float(row['cache-references'].replace(",", "")) * 100)
+        elif index % 6 == n2:
+            misses_2.append(float(row['cache-misses'].replace(",", "")) / float(row['cache-references'].replace(",", "")) * 100)
+        elif index % 6 == n3:
+            misses_3.append(float(row['cache-misses'].replace(",", "")) / float(row['cache-references'].replace(",", "")) * 100)
+    
+    misses_1 = misses_1[:3] + [misses_1[4]] + [misses_1[3]]
+    misses_2 = misses_2[:3] + [misses_2[4]] + [misses_2[3]]
+    misses_3 = misses_3[:3] + [misses_3[4]] + [misses_3[3]]
+    barWidth = 0.25
+    
+    fig, ax1 = plt.subplots(figsize=(12, 8))
+    br1 = np.arange(len(misses_1))
+    ax1.bar(br1, misses_1, color='black', width=barWidth, edgecolor='grey', label=l1)
+    br2 = [x + barWidth for x in br1]
+    ax1.bar(br2, misses_2, color='grey', width=barWidth, edgecolor='grey', label=l2)
+    br3 = [x + barWidth for x in br2]
+    ax1.bar(br3, misses_3, color='blue', width=barWidth, edgecolor='grey', label=l3)
+    
+    # Show the number of the bar on top of it
+    for i in range(len(misses_1)):
+        ax1.text(i, misses_1[i], format_number(misses_1[i]), ha='center', va='bottom')
+        ax1.text(i + barWidth, misses_2[i], format_number(misses_2[i]), ha='center', va='bottom')
+        ax1.text(i + 2 * barWidth, misses_3[i], format_number(misses_3[i]), ha='center', va='bottom')
+    
+    ax1.set_yticklabels([format_number(y) for y in ax1.get_yticks()])
+    flags = ['NONE', 'UNROLL', 'CACHE AWARE', 'UNROLL & C.A.', 'BEST']
+    ax1.set_xticks([r + barWidth for r in range(len(misses_1))])
+    ax1.set_xticklabels(flags, fontsize=16)
+
+    fig.tight_layout()
+    fig.legend(fontsize=16, loc='upper right')
+    plt.title(title, fontweight='bold', fontsize=30)
+    plt.savefig('measurements/case_' + name + '_cache_rate.svg', format='svg')
     plt.close()
 
 plot_case('1', 'Matrix size test', 0, 1, '64', '512')
@@ -114,6 +157,8 @@ plot_case('3', 'Number of patterns test', 4, 5, '8', '128')
 
 plot_case_cache('', "", 1, 3, 5, 'matrix', 'pattern', 'pattern count', 'cache-misses', True)
 plot_case_cache('', "", 1, 3, 5, 'matrix', 'pattern', 'pattern count', 'cache-references', True)
+
+plot_cache_miss_rate('1', 'Matrix size test', 1, 3, 5, 'matrix', 'pattern', 'pattern count')
 
 ### worker plot
 # worker_count,matsize,pattern_size,nb_patterns,transfers_per_sec,cache-misses,cache-references
