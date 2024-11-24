@@ -54,8 +54,8 @@ def plot_case(name, title, n1, n2, pre_ledger, aft_ledger):
     plt.xlabel('Compile flags', fontweight ='bold', fontsize = 22) 
     plt.ylabel('Transfers per second', fontweight ='bold', fontsize = 22) 
     plt.xticks([r + (barWidth/2) for r in range(len(case_y_pre))], 
-            ['NONE', 'UNROLL', 'CACHE AWARE', 'UNROLL & CACHE AWARE', 'BEST'], fontsize=16)
-    plt.legend(fontsize = 16, loc='upper right')
+            ['NONE', 'UNROLL', 'CACHE', 'UNROLL & CACHE', 'BEST'], fontsize=18)
+    plt.legend(fontsize = 18, loc='upper right')
     plt.title(title, fontweight = 'bold', fontsize = 30)
     plt.savefig('measurements/case_' + name + '.svg', format='svg')
     plt.close()
@@ -80,11 +80,11 @@ def plot_case_cache(name, title, n1, n2, n3, l1, l2, l3, stat, log=False):
     
     fig, ax1 = plt.subplots(figsize=(12, 8))
     br1 = np.arange(len(misses_1))
-    ax1.bar(br1, misses_1, color='black', width=barWidth, edgecolor='grey', label=l1)
+    ax1.bar(br1, misses_1, color='black', width=barWidth, label=l1)
     br2 = [x + barWidth for x in br1]
-    ax1.bar(br2, misses_2, color='grey', width=barWidth, edgecolor='grey', label=l2)
+    ax1.bar(br2, misses_2, color='grey', width=barWidth, label=l2)
     br3 = [x + barWidth for x in br2]
-    ax1.bar(br3, misses_3, color='blue', width=barWidth, edgecolor='grey', label=l3)
+    ax1.bar(br3, misses_3, color='white', edgecolor='black', width=barWidth, label=l3)
     
     if log: 
         ax1.set_yscale("log")
@@ -96,12 +96,12 @@ def plot_case_cache(name, title, n1, n2, n3, l1, l2, l3, stat, log=False):
         ax1.text(i + 2 * barWidth, misses_3[i], format_number(misses_3[i]), ha='center', va='bottom')
     
     ax1.set_yticklabels([format_number(y) for y in ax1.get_yticks()])
-    flags = ['NONE', 'UNROLL', 'CACHE AWARE', 'UNROLL & CACHE AWARE', 'BEST']
+    flags = ['NONE', 'UNROLL', 'CACHE', 'UNROLL & CACHE', 'BEST']
     ax1.set_xticks([r + barWidth for r in range(len(misses_1))])
-    ax1.set_xticklabels(flags, fontsize=16)
+    ax1.set_xticklabels(flags, fontsize=18)
     
     fig.tight_layout()
-    fig.legend(fontsize=16, loc='upper right')
+    fig.legend(fontsize=18, loc='upper right')
     plt.title(title + "_" + stat, fontweight='bold', fontsize=30)
     plt.savefig('measurements/case_' + name + '_' + stat + '.svg', format='svg')
     plt.close()
