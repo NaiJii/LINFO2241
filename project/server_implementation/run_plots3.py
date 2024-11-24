@@ -29,7 +29,7 @@ for index, row in results.iterrows():
         print('----------------------')
     print(round((float(row['cache-misses'].replace(",","")) / float(row['cache-references'].replace(",","")) * 100), 2))
     
-def plot_case(name, title, n1, n2, pre_ledger, aft_ledger):
+def plot_case(name, title, n1, n2, pre_ledger, aft_ledger, loc='upper right'):
     case_y_pre = []
     case_y_aft = []
     for index, row in results.iterrows():
@@ -60,12 +60,12 @@ def plot_case(name, title, n1, n2, pre_ledger, aft_ledger):
         plt.text(i, case_y_pre[i], format_number(case_y_pre[i]), ha='center', va='bottom')
         plt.text(i + barWidth, case_y_aft[i], format_number(case_y_aft[i]), ha='center', va='bottom')
     plt.yticks(fontsize=18) 
-    plt.legend(fontsize = 18, loc='upper right')
+    plt.legend(fontsize = 18, loc=loc)
     #plt.title(title, fontweight = 'bold', fontsize = 30)
     plt.savefig('measurements/case_' + name + '.svg', format='svg')
     plt.close()
 
-def plot_case_cache(name, title, n1, n2, n3, l1, l2, l3, stat, log=False):
+def plot_case_cache(name, title, n1, n2, n3, l1, l2, l3, stat, log=False, loc='upper right'):
     misses_1 = []
     misses_2 = []
     misses_3 = []
@@ -106,14 +106,14 @@ def plot_case_cache(name, title, n1, n2, n3, l1, l2, l3, stat, log=False):
     ax1.set_xticklabels(flags, fontsize=18)
     
     fig.tight_layout()
-    fig.legend(fontsize=16, loc='upper right')
+    fig.legend(fontsize=16, loc=loc)
     #plt.title(title, fontweight='bold', fontsize=30)
     plt.xlabel('Compile flags', fontweight ='bold', fontsize = 22)
     plt.ylabel(stat, fontweight ='bold', fontsize = 22)
     plt.savefig('measurements/' + name + '.svg', format='svg')
     plt.close()
 
-def plot_cache_miss_rate(name, title, n1, n2, n3, l1, l2, l3, log=False):
+def plot_cache_miss_rate(name, title, n1, n2, n3, l1, l2, l3, log=False, loc='upper right'):
     misses_1 = []
     misses_2 = []
     misses_3 = []
@@ -153,21 +153,21 @@ def plot_cache_miss_rate(name, title, n1, n2, n3, l1, l2, l3, log=False):
     ax1.set_xticklabels(flags, fontsize=16)
 
     fig.tight_layout()
-    fig.legend(fontsize=16, loc='upper right')
+    fig.legend(fontsize=16, loc=loc)
     #plt.title(title, fontweight='bold', fontsize=30)
     plt. xlabel('Compile flags', fontweight ='bold', fontsize = 22)
     plt.ylabel('Cache miss rate (%)', fontweight ='bold', fontsize = 22)
     plt.savefig('measurements/' + name + '.svg', format='svg')
     plt.close()
 
-plot_case('1', 'Matrix size test', 0, 1, '64', '512')
-plot_case('2', 'Pattern size test', 2, 3, '32', '128')
-plot_case('3', 'Number of patterns test', 4, 5, '8', '128')
+plot_case('1', 'Matrix size test', 0, 1, '64', '512', 'center right')
+plot_case('2', 'Pattern size test', 2, 3, '32', '128', 'upper left')
+plot_case('3', 'Number of patterns test', 4, 5, '8', '128', 'upper left')   
 
-plot_case_cache('misses', "", 1, 3, 5, 'matrix', 'pattern', 'pattern count', 'cache-misses', True)
-plot_case_cache('references', "", 1, 3, 5, 'matrix', 'pattern', 'pattern count', 'cache-references', True)
+plot_case_cache('misses', "", 1, 3, 5, 'matrix', 'pattern', 'pattern count', 'cache-misses', True, 'upper left')
+plot_case_cache('references', "", 1, 3, 5, 'matrix', 'pattern', 'pattern count', 'cache-references', True, 'upper right')
 
-plot_cache_miss_rate('miss rate', 'Cache miss rate', 1, 3, 5, 'matrix', 'pattern', 'pattern count', True)
+plot_cache_miss_rate('miss rate', 'Cache miss rate', 1, 3, 5, 'matrix', 'pattern', 'pattern count', True, 'upper right')
 
 fig, ax = plt.subplots(figsize =(12, 8))
 
