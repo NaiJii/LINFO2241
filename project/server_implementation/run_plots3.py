@@ -51,16 +51,15 @@ def plot_case(name, title, n1, n2, pre_ledger, aft_ledger):
     plt.yscale("log")
     if len(set(case_y_pre + case_y_aft)) == 1:
         plt.ylim([min(case_y_pre + case_y_aft) * 0.9, max(case_y_pre + case_y_aft) * 1.1])
-    plt.xlabel('Compile flags', fontweight ='bold', fontsize = 22) 
-    plt.ylabel('Transfers per second', fontweight ='bold', fontsize = 22) 
+    plt.xlabel('Compile flags', fontweight ='bold', fontsize = 13)
+    plt.ylabel('Transfers per second', fontweight ='bold', fontsize = 13)
     plt.xticks([r + (barWidth/2) for r in range(len(case_y_pre))], 
             ['NONE', 'UNROLL', 'CACHE', 'UNROLL & CACHE', 'BEST'], fontsize=18)
     
     for i in range(len(case_y_pre)):
         plt.text(i, case_y_pre[i], format_number(case_y_pre[i]), ha='center', va='bottom')
         plt.text(i + barWidth, case_y_aft[i], format_number(case_y_aft[i]), ha='center', va='bottom')
-    plt.yticks(fontsize=18)
-    
+    plt.yticks(fontsize=18) 
     plt.legend(fontsize = 18, loc='upper right')
     #plt.title(title, fontweight = 'bold', fontsize = 30)
     plt.savefig('measurements/case_' + name + '.svg', format='svg')
@@ -96,11 +95,12 @@ def plot_case_cache(name, title, n1, n2, n3, l1, l2, l3, stat, log=False):
         ax1.set_yscale("log")
 
     for i in range(len(misses_1)):
-        ax1.text(i, misses_1[i], format_number(misses_1[i]), ha='center', va='bottom')
-        ax1.text(i + barWidth, misses_2[i], format_number(misses_2[i]), ha='center', va='bottom')
-        ax1.text(i + 2 * barWidth, misses_3[i], format_number(misses_3[i]), ha='center', va='bottom')
+        ax1.text(i, misses_1[i], format_number(misses_1[i]), ha='center', va='bottom',  fontsize=13)
+        ax1.text(i + barWidth, misses_2[i], format_number(misses_2[i]), ha='center', va='bottom',  fontsize=13)
+        ax1.text(i + 2 * barWidth, misses_3[i], format_number(misses_3[i]), ha='center', va='bottom',  fontsize=13)
     
-    ax1.set_yticklabels([format_number(y) for y in ax1.get_yticks()])
+    ax1.set_yticklabels([format_number(y) for y in ax1.get_yticks()], fontsize=18)
+    
     flags = ['NONE', 'UNROLL', 'CACHE AWARE', 'UNROLL & C.A.', 'BEST']
     ax1.set_xticks([r + barWidth for r in range(len(misses_1))])
     ax1.set_xticklabels(flags, fontsize=18)
@@ -140,13 +140,12 @@ def plot_cache_miss_rate(name, title, n1, n2, n3, l1, l2, l3, log=False):
     if log:
         ax1.set_yscale("log")
 
-    # Show the number of the bar on top of it
     for i in range(len(misses_1)):
-        ax1.text(i, misses_1[i], format_number(misses_1[i]), ha='center', va='bottom')
-        ax1.text(i + barWidth, misses_2[i], format_number(misses_2[i]), ha='center', va='bottom')
-        ax1.text(i + 2 * barWidth, misses_3[i], format_number(misses_3[i]), ha='center', va='bottom')
+        ax1.text(i, misses_1[i], format_number(misses_1[i]), ha='center', va='bottom', fontsize=13)
+        ax1.text(i + barWidth, misses_2[i], format_number(misses_2[i]), ha='center', va='bottom',  fontsize=13)
+        ax1.text(i + 2 * barWidth, misses_3[i], format_number(misses_3[i]), ha='center', va='bottom',  fontsize=13)
     
-    ax1.set_yticklabels([format_number(y) for y in ax1.get_yticks()])
+    ax1.set_yticklabels([format_number(y) for y in ax1.get_yticks()], fontsize=18)
     flags = ['NONE', 'UNROLL', 'CACHE AWARE', 'UNROLL & C.A.', 'BEST']
     ax1.set_xticks([r + barWidth for r in range(len(misses_1))])
     ax1.set_xticklabels(flags, fontsize=16)
