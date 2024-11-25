@@ -1,5 +1,6 @@
 #include <math.h>
 #include <ngx_link_func_module.h>
+#include <ngx_core.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,12 +54,16 @@ static char *body_processing(ngx_link_func_ctx_t *ctx, char *body, size_t body_l
     uint32_t* intermediary_matrix = NULL;
 
     if (parsed.matrices_size <= 512) {
-        res_uint = alloca(parsed.nb_patterns * sizeof(uint32_t));
-        intermediary_matrix = alloca(parsed.matrices_size * parsed.matrices_size * sizeof(uint32_t));
+        res_uint = (uint32_t*)(((uintptr_t)alloca(parsed.nb_patterns * sizeof(uint32_t) + 64 - 1) + (64 - 1)) & ~(uintptr_t)(64 - 1));
+        intermediary_matrix = (uint32_t*)(((uintptr_t)alloca(parsed.matrices_size * parsed.matrices_size * sizeof(uint32_t) + 64 - 1) + (64 - 1)) & ~(uintptr_t)(64 - 1));
     }   
     else {
-        res_uint = ngx_link_func_palloc(ctx, parsed.nb_patterns * sizeof(uint32_t));
-        intermediary_matrix = ngx_link_func_palloc(ctx, parsed.matrices_size * parsed.matrices_size * sizeof(uint32_t));
+        res_uint = ngx_memalign(64, parsed.nb_patterns * sizeof(uint32_t), NULL);
+        intermediary_matrix = ngx_memalign(64, parsed.matrices_size * parsed.matrices_size * sizeof(uint32_t), NULL);
+        if (res_uint == NULL || intermediary_matrix == NULL) {
+            // ngx_log_error(NGX_LOG_ERR, ngx_cycle->log, 0, "Failed to allocate aligned memory");
+            return NULL;
+        }
     }
     
     multiply_matrix(parsed.mat1, parsed.mat2, intermediary_matrix, parsed.matrices_size);
