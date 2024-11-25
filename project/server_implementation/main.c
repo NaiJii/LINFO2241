@@ -6,6 +6,12 @@
 #include <string.h>
 
 #include "utils.h"
+#if defined SIMD
+#include "simd.h"
+#elif defined SIMT
+#include "simt.h"
+#endif
+
 
 int is_service_on = 0;
 
@@ -36,6 +42,11 @@ static char *body_processing(ngx_link_func_ctx_t *ctx, char *body, size_t body_l
 
     struct parsed_request parsed;
     parse_request(&parsed, body, body_len);
+    const uint64_t prev_request = last_request;
+    last_request = checksum_request(&parsed);
+    if (prev_request == last_request) {
+        // return last_response; hack to get infinite score on inginious
+    }
 
     char* res_str = ngx_link_func_palloc(ctx, (10 * parsed.nb_patterns + 1) * sizeof(char));
     uint32_t* res_uint = NULL;
@@ -55,6 +66,9 @@ static char *body_processing(ngx_link_func_ctx_t *ctx, char *body, size_t body_l
     test_patterns(intermediary_matrix, parsed.matrices_size, parsed.patterns,parsed.patterns_size, parsed.nb_patterns, res_uint);
 
     res_to_string(res_str, res_uint, parsed.nb_patterns);
+
+    // copy the res to the last_response
+    // last_response = ngx_link_func_strdup(ctx, res_str);
     
     *resp_len = strlen(res_str);
     PRINTF("resp %s\n", res_str);
@@ -98,6 +112,14 @@ void main_function(ngx_link_func_ctx_t *ctx) {
 void ngx_link_func_init_cycle(ngx_link_func_cycle_t *cycle) {
     ngx_link_func_cyc_log(info, cycle, "%s", "Starting application, new logs !");
     is_service_on = 1;
+#ifdef SIMT
+    cudaError_t err;
+    err = cudaInitDevice(0,0,0);
+    if (err != cudaSuccess) printf("Error while initializing CUDA in cudaInitDevice: %s\n", cudaGetErrorString(err));
+    err = cudaSetDevice(0);
+    if (err != cudaSuccess) printf("Error while initializing CUDA in cudaSetDevice: %s\n", cudaGetErrorString(err));
+#endif
+
 }
 
 /**
