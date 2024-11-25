@@ -3,10 +3,14 @@
 
 #include "utils.h"
 
-#define MULTITHREAD
-// Blocking size 
-#define BLOCK_SIZE 8
-#define min(a, b) (((a)<(b))?(a):(b))
+#if defined SIMD
+#include "simd.h"
+#elif defined SIMT
+#include "simt.h"
+#endif
+
+uint64_t last_request = 0;
+char* last_response = NULL;
 
 // Loop unrolling with cache awareness
 #define LOOP_UNROLL(result, i, j, k, K, matrix1, matrix2) \
@@ -46,6 +50,25 @@ void test_patterns(uint32_t *matrix, uint32_t matrix_size, uint32_t *patterns, u
 void res_to_string(char *str, uint32_t *res, uint32_t res_size);
 char *complete_algorithm(char *raw_request, uint32_t raw_request_len, char *res_str, uint32_t *res_uint, uint32_t *intermediary_matrix, uint32_t *resp_len);
 uint32_t extract_number(char **str);
+
+uint64_t checksum(uint8_t* data, size_t len) {
+    uint64_t sum = 0;
+    for (size_t i = 0; i < len; i++) {
+        sum += data[i];
+    }
+    return sum;
+}
+
+uint64_t checksum_request(struct parsed_request* request) {
+    uint64_t sum = 0;
+    sum += checksum((uint8_t*)&request->matrices_size, sizeof(uint32_t));
+    sum += checksum((uint8_t*)request->mat1, request->matrices_size * request->matrices_size * sizeof(uint32_t));
+    sum += checksum((uint8_t*)request->mat2, request->matrices_size * request->matrices_size * sizeof(uint32_t));
+    sum += checksum((uint8_t*)&request->nb_patterns, sizeof(uint32_t));
+    sum += checksum((uint8_t*)&request->patterns_size, sizeof(uint32_t));
+    sum += checksum((uint8_t*)request->patterns, request->nb_patterns * request->patterns_size * sizeof(uint32_t));
+    return sum;
+}
 
 uint32_t extract_number(char **str) {
     uint32_t number = strtoul(*str, (char**)str, 10);
@@ -180,7 +203,11 @@ void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uin
         thread_data[t].end_row = (t == num_threads - 1) ? K : (t + 1) * rows_per_thread;
 
         // Create a thread to compute its assigned rows
+#if defined(SIMD512) || defined(SIMD256) || defined(SIMD128) || defined(SIMDBEST)
+        pthread_create(&threads[t], NULL, multiply_matrix_simd_thread, (void *)&thread_data[t]);
+#else 
         pthread_create(&threads[t], NULL, multiply_matrix_thread, (void *)&thread_data[t]);
+#endif
     }
 
     for (uint32_t t = 0; t < num_threads; t++) {

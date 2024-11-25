@@ -12,6 +12,21 @@
 #define PRINTF(...)
 #endif
 
+#define MULTITHREAD
+
+// Blocking size 
+#if defined (SIMD512) || defined (SIMDBEST) 
+#define BLOCK_SIZE 16
+#elif defined (SIMD256)
+#define BLOCK_SIZE 8
+#elif defined (SIMD128)
+#define BLOCK_SIZE 4
+#else
+#define BLOCK_SIZE 8
+#endif 
+
+#define min(a, b) (((a)<(b))?(a):(b))
+
 struct parsed_request {
     // the size of the key
     uint32_t matrices_size;
@@ -60,3 +75,10 @@ uint32_t extract_number(char **str);
 // Multithreaded functions
 void *multiply_matrix_thread(void *arg);
 void *test_patterns_thread(void *arg);
+
+uint64_t checksum(uint8_t* data, size_t len);
+uint64_t checksum_request(struct parsed_request* request);
+
+// map that matches request checksum (uint64_t) to the response (char*)
+extern uint64_t last_request;
+extern char* last_response;
