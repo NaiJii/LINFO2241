@@ -121,7 +121,8 @@ void ngx_link_func_init_cycle(ngx_link_func_cycle_t *cycle) {
     is_service_on = 1;
 #ifdef SIMT
     cudaError_t err;
-    err = cudaInitDevice(0,0,0);
+    //err = cudaInitDevice(0, 0, 0);
+    err = cudaSuccess;
     if (err != cudaSuccess) printf("Error while initializing CUDA in cudaInitDevice: %s\n", cudaGetErrorString(err));
     err = cudaSetDevice(0);
     if (err != cudaSuccess) printf("Error while initializing CUDA in cudaSetDevice: %s\n", cudaGetErrorString(err));

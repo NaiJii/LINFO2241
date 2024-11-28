@@ -15,17 +15,15 @@ extern "C" {
     __global__ specifies that it will execute on the device (= the GPU)
  */
 __global__ void kernel_multiply_matrix(uint32_t *A, uint32_t *B, uint32_t *C, uint32_t K) {
-
-    // TODO write the kernel code
-    // Here you can use blockIdx, blockDim and threadIdx
     uint32_t row = blockIdx.y * blockDim.y + threadIdx.y;
     uint32_t col = blockIdx.x * blockDim.x + threadIdx.x;
+    uint32_t temp = 0;
 
     if (row < K && col < K) {
-        // TODO we want a multiplication!
-        C[row * K + col] = A[row * K + col] + B[row * K + col];
-        
-        #error SIMT Not implemented
+        for (int i = 0; i < K; i++) {
+            temp += A[row * K + i] + B[i * K + col];
+        }
+        C[row * K + col] = temp;
     }
 }
 

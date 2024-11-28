@@ -205,6 +205,8 @@ void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uin
         // Create a thread to compute its assigned rows
 #if defined(SIMD512) || defined(SIMD256) || defined(SIMD128) || defined(SIMDBEST)
         pthread_create(&threads[t], NULL, multiply_matrix_simd_thread, (void *)&thread_data[t]);
+#elif defined(SIMT)
+        multiply_matrix_simt(matrix1, matrix2, result, K);
 #else 
         pthread_create(&threads[t], NULL, multiply_matrix_thread, (void *)&thread_data[t]);
 #endif
