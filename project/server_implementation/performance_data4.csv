@@ -1,1 +1,5 @@
-
+matsize,pattern_size,nb_patterns,transfers_per_sec,flag
+128,64,2,24.98,''
+128,64,2,25.1,'-DSIMDBEST'
+128,64,2,49.97,'-DBEST'
+128,64,2,36.38,'-DCACHE_AWARE
