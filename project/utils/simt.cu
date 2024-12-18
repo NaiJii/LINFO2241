@@ -17,11 +17,11 @@ extern "C" {
 __global__ void kernel_multiply_matrix(uint32_t *A, uint32_t *B, uint32_t *C, uint32_t K) {
     uint32_t row = blockIdx.y * blockDim.y + threadIdx.y;
     uint32_t col = blockIdx.x * blockDim.x + threadIdx.x;
-    uint32_t temp = 0;
 
     if (row < K && col < K) {
-        for (int i = 0; i < K; i++) {
-            temp += A[row * K + i] + B[i * K + col];
+        uint32_t temp = 0;
+        for (uint32_t i = 0; i < K; i++) {
+            temp += A[row * K + i] * B[i * K + col];
         }
         C[row * K + col] = temp;
     }

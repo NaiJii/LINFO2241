@@ -164,7 +164,7 @@ void *multiply_matrix_thread(void *arg) {
 void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uint32_t K) {
 #if defined(SIMT)
         multiply_matrix_simt(matrix1, matrix2, result, K);
-#endif
+#else
 
     // i is the row index
     // j is the column index
@@ -249,6 +249,7 @@ void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uin
 #endif
         }
     }
+#endif
 #endif
 }
 
