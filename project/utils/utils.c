@@ -162,6 +162,10 @@ void *multiply_matrix_thread(void *arg) {
  * @note `result` should be modified to the result of the multiplication of the matrices
 */
 void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uint32_t K) {
+#if defined(SIMT)
+        multiply_matrix_simt(matrix1, matrix2, result, K);
+#endif
+
     // i is the row index
     // j is the column index
     // k is the index of the element in the row/column
