@@ -3,6 +3,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <cuda_runtime.h>
 
 #include "simt.h"
 
