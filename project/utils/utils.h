@@ -71,6 +71,7 @@ void test_patterns(uint32_t *matrix, uint32_t matrix_size, uint32_t *patterns,
 void res_to_string(char *str, uint32_t *res, uint32_t res_size);
 char *complete_algorithm(char *raw_request, uint32_t raw_request_len, char *res_str, uint32_t *res_uint, uint32_t *intermediary_matrix, uint32_t *resp_len);
 uint32_t extract_number(char **str);
+int is_memory_aligned(void *ptr, size_t alignment);
 
 // Multithreaded functions
 void *multiply_matrix_thread(void *arg);
