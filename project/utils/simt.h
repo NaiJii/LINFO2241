@@ -1,7 +1,6 @@
 #pragma once
 #include <stdint.h>
 #include <stdlib.h>
-#include <cuda_runtime.h>
 
 /**
  * @brief Computes the product of two matrixes, **by launching a CUDA kernel**
