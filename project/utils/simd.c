@@ -25,7 +25,7 @@ void* multiply_matrix_simd_thread(void *arg) {
             for (; j < K; j++) {
                 result[i * K + j] += matrix1[i * K + k] * matrix2[k * K + j];
             }
-#elif defined(SIMD256) 
+#elif defined(SIMD256) || defined(SIMDBEST) 
             __m256i a_vec = _mm256_set1_epi32(matrix1[i * K + k]);
             uint32_t j = 0;
             for (; j + 8 <= K; j += 8) {
@@ -38,7 +38,7 @@ void* multiply_matrix_simd_thread(void *arg) {
             for (; j < K; j++) {
                 result[i * K + j] += matrix1[i * K + k] * matrix2[k * K + j];
             }
-#elif defined(SIMD128) || defined(SIMDBEST)
+#elif defined(SIMD128)
             __m128i a_vec = _mm_set1_epi32(matrix1[i * K + k]);
             uint32_t j = 0;
             for (; j + 4 <= K; j += 4) {

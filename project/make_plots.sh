@@ -1,7 +1,8 @@
 #!/bin/bash
 
 cd server_implementation
-make run_release
-cd ..
-
-python3 run_plots3.py
+# make -B run_release_simd CFLAGS+="-DSIMDBEST" # change this for SIMT
+sleep 1
+# python3 run_perf4.py
+sleep 1
+python3 run_plots4.py

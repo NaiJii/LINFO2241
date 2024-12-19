@@ -130,7 +130,7 @@ def generate_worker_csv():
             "http://localhost:8888/",
             f"-R -1",
             f"-d10s",
-            f"-c1",
+            f"-c100",
             f"-t1",
             "-s",
             "../wrk_scripts/simple_scenario.lua"
@@ -156,7 +156,7 @@ def generate_worker_csv():
                     'matsize': wrk_cfg[1].split('=')[1],
                     'pattern_size': wrk_cfg[2].split('=')[1],
                     'nb_patterns': wrk_cfg[3].split('=')[1],
-                    'transfers_per_sec': wrk_results['requests_per_sec'],
+                    'requests_per_sec': wrk_results['requests_per_sec'],
                     'flag' : flag[1] if len(flag) > 1 else flag[0]
                 })
 

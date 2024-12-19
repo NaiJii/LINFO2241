@@ -5,12 +5,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <cuda_runtime.h>
 
 #include "utils.h"
 #if defined SIMD
 #include "simd.h"
 #elif defined SIMT
+#include <cuda_runtime.h>
 #include "simt.h"
 #endif
 
