@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 results = pd.read_csv("performance_data4.csv")
-grouped = results.groupby('flags')['requests_per_sec'].agg(['mean', 'var'])
+grouped = results.groupby('flag')['req'].agg(['mean', 'var'])
 
 fig, ax = plt.subplots()
 grouped.plot(kind='bar', y='mean', yerr='var', ax=ax, capsize=4)

@@ -149,14 +149,15 @@ def generate_worker_csv():
                 wrk_results = parse_wrk(wrk_output.decode())
                 print(wrk.communicate())
                 print(f"[INFO] WRK results: {wrk_results}")
-                flag = make_cmd.split()[3].split('=')[1]
+                flag = make_cmd.split()[3].split('=')[1].split('-')
+
                 # print(f"[INFO] Flag: {flag}")
                 results.append({
                     'matsize': wrk_cfg[1].split('=')[1],
                     'pattern_size': wrk_cfg[2].split('=')[1],
                     'nb_patterns': wrk_cfg[3].split('=')[1],
                     'transfers_per_sec': wrk_results['requests_per_sec'],
-                    'flag' : flag.split('-')[1]
+                    'flag' : flag[1] if len(flag) > 1 else flag[0]
                 })
 
         print("[INFO] Server and tests completed.")
