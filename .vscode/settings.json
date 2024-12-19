@@ -1,3 +1,10 @@
 {
-    "makefile.configureOnOpen": false
+    "makefile.configureOnOpen": false,
+    "files.associations": {
+        "functional": "c",
+        "random": "c",
+        "cstdlib": "c",
+        "stdint.h": "c",
+        "ngx_cycle.h": "c"
+    }
 }

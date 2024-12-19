@@ -1,6 +1,3 @@
-#ifndef UTILS_H
-#define UTILS_H
-
 #include "utils.h"
 
 #if defined SIMD
@@ -186,7 +183,7 @@ void multiply_matrix(uint32_t *matrix1, uint32_t *matrix2, uint32_t *result, uin
 
         // Create a thread to compute its assigned rows
 #if defined(SIMD512) || defined(SIMD256) || defined(SIMD128) || defined(SIMDBEST)
-        pthread_create(&threads[t], NULL, multiply_matrix_simd_thread2, (void *)&thread_data[t]);
+        pthread_create(&threads[t], NULL, multiply_matrix_simd_thread, (void *)&thread_data[t]);
 #else 
         pthread_create(&threads[t], NULL, multiply_matrix_thread, (void *)&thread_data[t]);
 #endif
@@ -423,4 +420,3 @@ char *complete_algorithm(char *raw_request, uint32_t raw_request_len, char *res_
     *resp_len = strlen(res_str);
     return res_str;
 }
-#endif 
